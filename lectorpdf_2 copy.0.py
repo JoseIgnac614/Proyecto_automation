@@ -6,7 +6,7 @@ import sys
 sys.stdout.reconfigure(encoding='utf-8')
 
 # Carpeta que contiene las subcarpetas con los archivos PDF
-carpeta_raiz = "SANLUIS_20_21/"
+carpeta_raiz = "C:/Users/nacho/Downloads/davud/Automatizacion"
 
 # Nombre del archivo CSV de salida
 archivo_csv = "informacion_propiedades.csv"
@@ -28,9 +28,8 @@ informacion = []
 # Itera a través de las subcarpetas
 for subdir, _, archivos in os.walk(carpeta_raiz):
     for archivo_pdf in archivos:
-        if archivo_pdf.endswith(".pdf") and "B" in archivo_pdf or "b" in archivo_pdf:
+        if (archivo_pdf.endswith(".pdf") and ("B" in archivo_pdf or "b" in archivo_pdf)):
             pdf_path = os.path.join(subdir, archivo_pdf)
-
             with pdfplumber.open(pdf_path) as pdf:
                 info_dict = {"Nombre de Archivo": archivo_pdf}
 
@@ -59,11 +58,13 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             print (re.search(rf"({i})\s+(\d+(\.\d+)?)", text))
                         if area_match:
                             etiqueta = area_match.group(1)
-                            valor = "'" + area_match.group(2)
+                            
                             if etiqueta == "Centimietros:":
                                 # Si la etiqueta es "Centimetros:", concatena el valor con un punto
-                                area_terreno += "." + valor + "'"
+                                valor = area_match.group(2)
+                                area_terreno += "." + valor
                             else:
+                                valor = area_match.group(2)
                                 area_terreno = valor
                             #print("Área de Terreno:", area_terreno)  # Agrega esta línea para depura
                             info_dict["Área de Terreno"] = area_terreno

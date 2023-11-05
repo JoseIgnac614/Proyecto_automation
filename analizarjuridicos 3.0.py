@@ -2,6 +2,7 @@ import os
 import pdfplumber
 import csv
 import re
+from datetime import datetime
 
 def dividir_nombres(nombre):
     nombres = nombre.split()
@@ -45,10 +46,10 @@ def dividir_por_delimitadores(delimitadores, texto):
     return texto, ""
 
 # Carpeta que contiene los archivos PDF
-carpeta_raiz = "SANLUIS_20_21/"
+carpeta_raiz = "C:/Users/nacho/Downloads/davud/Automatizacion"
 
 # Nombre del archivo CSV de salida
-archivo_csv = "nombres_cedulas2.csv"
+archivo_csv = "nombres_cedulas.csv"
 
 # Listas para almacenar los nombres y cédulas
 nombres = []
@@ -57,11 +58,12 @@ segundo_nombre = []
 primer_apellido = []
 segundo_apellido = []
 cedulas = []
+anotacionesfuera = ["CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION"]
 
 # Itera a través de los archivos PDF en la carpeta
 for subdir, _, archivos in os.walk(carpeta_raiz):
     for archivo_pdf in archivos:
-        if archivo_pdf.endswith(".pdf") and "J" in archivo_pdf or "j" in archivo_pdf:
+        if archivo_pdf.endswith(".pdf") and ("J" in archivo_pdf or "j" in archivo_pdf):
             pdf_path = os.path.join(subdir, archivo_pdf)
 
             with pdfplumber.open(pdf_path) as pdf:
@@ -115,21 +117,17 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     for line in reversed(lines):
                         # if "ANTONIO MARIA" in line:
                         #     print ("tons")
-                        if "DE:" in line or bool_A:           #para poder guardar un párrafo solo cuando tenga "DE:"
+                        if "DE:" in line:           #para poder guardar un párrafo solo cuando tenga "DE:"
                             encontrado_de = True
-                        elif "CANCELACION" in line or "PARCIAL" in line or "EMBARGO" in line or "DEMANDA EN PROCESO" in line or "ACLARACION" in line or "FALSA TRADICION" in line:
+                        elif any(keyword in line for keyword in anotacionesfuera):      #CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION"
                             encontrado_de = False
                         elif "Se cancela anotación No: " in line:
                             # Buscar números después de "No:"
                             nuevos_numeros = [numero.strip() for numero in line.split("No: ")[1].split(",")]
                             numeros_cancelados = numeros_cancelados + nuevos_numeros
                         
-                        if "A:" in line and encontrado_nr2 or "A:" in line and encontrado_x:
-                            encontrado_nr2 = True
-                            encontrado_de = True
-                        elif "DE:" in line and encontrado_nr2:
-                            encontrado_nr2 = True
-                            encontrado_de = True
+                        if ("A:" or "DE:") in line and encontrado_nr2:
+                            encontrado_nr2 = encontrado_de = True
                             
                             # Verificar si existe "ANOTACION: Nro " seguido de los números cancelados
                         for numero in numeros_cancelados:
@@ -143,15 +141,14 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             elif "A:" in line:
                                 bool_A = False
 
-                        if " X" in line and "A:" in line or resultado and "A:" in line or anot1 or encontrado_nr2 or " X" in line and "A:" in line:# and not encontrado_x:
+                        if " X" in line and "A:" in line or resultado and "A:" in line or anot1 or encontrado_nr2:# and not encontrado_x:
                             encontrado_x = True
                             encontrado_nr2 = False
                             #print (line)
 
                             # TRATAMIENTO DE DATOS PARA LA CÉDULA Y NOMBRE
                             nombre = line[3:]
-                            nombre, cedula = dividir_por_delimitadores([" CC ", " NIT. ", " X", " # "], nombre)
-
+                            nombre, cedula = dividir_por_delimitadores([" CC ", " NIT. ", " X", " # "," (MENOR) X"," TI "], nombre)
                             if resultado: #sirve para cuando solo hay una anotación nro 1.
                                 contador += 1
                                 if count_nr1_a == contador:
@@ -178,14 +175,54 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                 nombres = []
                                 cedulas = []
                                 texto_lineas = []
-                        if "ANOTACION: Nro 2" in line:
+                        if "ANOTACION" in line:
+                            encontrado_de = False
+                        if "ANOTACION: Nro 2 " in line:
                             encontrado_nr2 = True
-
+                            
                 # Combinar nombres y cédulas en una sola celda con saltos de línea
                 #print (nombres)
                 # nombres_celda = "\n".join(nombres)
                 # cedulas_celda = "\n".join(cedulas)
+                folio = archivo_pdf.split("-")[1].split(" ")[0] if "-" in archivo_pdf and " " in archivo_pdf else None # Obtener el número del nombre del archivo PDF
                 texto_celda = "\n".join(texto_lineas)
+                
+                # Buscar la primera fecha en formato DD-MM-AAAA
+                date_registro_match = re.search(r'\d{2}-\d{2}-\d{4}', texto_celda)
+                date_registro = date_registro_match.group(0) if date_registro_match else None
+
+                # Buscar la primera fecha en formato AAAA-MM-DD después del primer salto de línea
+                date_documento_match = re.search(r'DEL (\d{4}-\d{2}-\d{2}) ', texto_celda)
+                date_documento = date_documento_match.group(1) if date_documento_match else None
+                date_documento = datetime.strptime(date_documento, "%Y-%m-%d").strftime("%d-%m-%Y")
+
+                # Buscar la primera palabra después de "Doc: "
+                escritura_match = re.search(r'Doc: (\w+)', texto_celda)
+                escritura = escritura_match.group(1) if escritura_match else None
+
+                # Buscar el primer número después del primer salto de línea
+                n_escritura_match = re.search(r'(\d+) DEL', texto_celda)
+                n_escritura = n_escritura_match.group(1) if n_escritura_match else None
+
+                # Buscar la cadena de caracteres entre "00:00:00 " y " VALOR"
+                ente_match = re.search(r':(\d+) (.*?) VALOR', texto_celda)
+                if ente_match:
+                    ente = ente_match.group(2).upper()
+                    if "JUZGADO" not in ente:
+                        # Divide la cadena en dos partes usando " DE " como delimitador
+                        ente_partes = ente.split(" DE ", 1)
+
+                        # Reordena las partes y las une en una sola cadena
+                        ente = ente_partes[1] +" "+ ente_partes[0]
+                    elif ("PRIMERO" or "SEGUNDO") in ente:
+                        ente = ente.replace("PRIMERO", "001")
+                        ente = ente.replace("SEGUNDO", "002")
+                    else:
+                        ente = ente.replace("JUZGADO", "JUZGADO 001")
+                        
+                else:
+                    ente = None
+                
                 primer_nombre = []
                 segundo_nombre = []
                 primer_apellido = []
@@ -209,7 +246,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                     # Agregar encabezados si el archivo está vacío
                     if os.path.getsize(archivo_csv) == 0:
-                        csv_writer.writerow(["Nombre de archivo", "Servidumbre", "PH","Texto", "Cédulas", "Primer Nombre", "Segundo Nombre", "Primer Apellido", "Segundo Apellido"])
+                        csv_writer.writerow(["Nombre de archivo","Folio", "Servidumbre", "PH","Texto", "Fecha registro","Fecha documento","Fuente adm.","N. Fuente","Ente Em.","Cédulas", "Primer Nombre", "Segundo Nombre", "Primer Apellido", "Segundo Apellido"])
                     
                     if primer_nombre == []:
                         print ("No hay nadaaaaaaa, archivo: ", archivo_pdf)
@@ -218,9 +255,9 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     i = 0
                     while i < len(nombres):
                         if i == 0:
-                            csv_writer.writerow([archivo_pdf, servidumbre, ph, texto_celda, cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i]])
+                            csv_writer.writerow([archivo_pdf,folio, servidumbre, ph, texto_celda,date_registro,date_documento,escritura,n_escritura,ente, cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i]])
                         else:
-                            csv_writer.writerow(["", "","","", cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i]])
+                            csv_writer.writerow(["", "","","","", "","","","", "",cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i]])
                         i += 1
 
                 # Limpiar las listas para el próximo archivo PDF
