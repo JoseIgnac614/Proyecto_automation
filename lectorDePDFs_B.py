@@ -6,11 +6,11 @@ import sys
 sys.stdout.reconfigure(encoding='utf-8')
 
 # Carpeta que contiene las subcarpetas con los archivos PDF
-carpeta_raiz = "C:/Users/nacho/Downloads/davud/Automatizacion"
+carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/"
 #carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/01-11-2023/"
 
 # Nombre del archivo CSV de salida
-archivo_csv = "informacion_propiedades.csv"
+archivo_csv = carpeta_raiz+"informacion_propiedades.csv"
 
 # Cargar las normas de corrección desde el archivo "norma.csv" en un diccionario
 normas = {}

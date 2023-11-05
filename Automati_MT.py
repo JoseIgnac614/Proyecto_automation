@@ -11,6 +11,13 @@ import sys
 import io
 from bs4 import BeautifulSoup
 import re
+import ctypes
+import os
+
+
+
+# Evitar que el PC se suspenda
+ctypes.windll.kernel32.SetThreadExecutionState(0x80000002)
 
 llenarelresto = 1               #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
 nivel_de_zoom = 0.8
@@ -1029,5 +1036,10 @@ while hoja[fila_a_extraer] != None:
     fila_a_extraer+=1
         
 
+# Restaurar la configuración de suspensión
+ctypes.windll.kernel32.SetThreadExecutionState(0x80000000)
 
 time.sleep(5)
+
+# Suspender el PC (este comando es específico para Windows)
+os.system("shutdown /s /t 10")

@@ -46,10 +46,10 @@ def dividir_por_delimitadores(delimitadores, texto):
     return texto, ""
 
 # Carpeta que contiene los archivos PDF
-carpeta_raiz = "C:/Users/nacho/Downloads/davud/Automatizacion"
+carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/"
 
 # Nombre del archivo CSV de salida
-archivo_csv = "nombres_cedulas.csv"
+archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
 
 # Listas para almacenar los nombres y cédulas
 nombres = []
