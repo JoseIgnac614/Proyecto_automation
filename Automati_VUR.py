@@ -16,7 +16,6 @@ chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--kiosk-printing')
 chrome_options.add_argument('--disable-gpu')
 
-llenarelresto = 1               #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
 nivel_de_zoom = 0.8
 # Configura las opciones del navegador para ajustar el nivel de zoom
 chrome_options.add_argument(f"--force-device-scale-factor={nivel_de_zoom}")
@@ -35,6 +34,10 @@ prefs = {
     }),
 }
 directorio = "C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/Libro1.xlsx"
+#directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/01-11-2023/Libro1.xlsx"
+
+DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
+
 # Abre el archivo de Excel
 workbook = openpyxl.load_workbook(directorio)
 
@@ -176,7 +179,7 @@ while sheet['A'+str(count)].value != None:
                 )
 
                 # Abre el diálogo de impresión del navegador
-                descargar_pdf(driver,'C:\\Users\\nacho\\Downloads\\',"-VUR.pdf",valor_cadena+" B.pdf")
+                descargar_pdf(driver,DirDescargasVUR,"-VUR.pdf",valor_cadena+" B.pdf")
                 # Encuentra todos los elementos que tienen un atributo "id"
                 driver.switch_to.default_content()
 
@@ -210,7 +213,7 @@ while sheet['A'+str(count)].value != None:
                 EC.presence_of_element_located((By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(11) > div > div.tabbable.ng-isolate-scope > ul > li:nth-child(2)"))
             )
             elemento.click()
-            descargar_pdf(driver,'C:\\Users\\nacho\\Downloads\\',"-VUR.pdf",valor_cadena+" J.pdf")
+            descargar_pdf(driver,DirDescargasVUR,"-VUR.pdf",valor_cadena+" J.pdf")
             
             driver.switch_to.default_content()
             driver.find_element(By.CSS_SELECTOR, "#menu-navegacion > li:nth-child(5) > a").click()
@@ -248,28 +251,4 @@ while sheet['A'+str(count)].value != None:
     count += 1
         
 time.sleep(2)
-
-
-#driver.save_screenshot('C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/pagina B.pdf')
-
-
-
-
-
-################################
-# selects = driver.find_elements(By.CSS_SELECTOR, "select[id]")
-
-# # Itera a través de los elementos select encontrados
-# for select in selects:
-#     # Realiza acciones en cada elemento select si es necesario
-#     # Por ejemplo, puedes obtener su ID y realizar otras acciones
-#     select_id = select.get_attribute("id")
-#     print("ID del select encontrado:", select_id)
-    
-# elementos = driver.find_elements(By.CSS_SELECTOR, "[id]")
-
-# for elemento in elementos:
-#     elemento_id = elemento.get_attribute("id")
-#     print("ID del elemento:", elemento_id)
-##############################
 

@@ -58,7 +58,7 @@ segundo_nombre = []
 primer_apellido = []
 segundo_apellido = []
 cedulas = []
-anotacionesfuera = ["CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION"]
+anotacionesfuera = ["CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION","ESTA ANOTACION NO TIENE VALIDEZ", "PATRIMONIO DE FAMILIA"]
 
 # Itera a través de los archivos PDF en la carpeta
 for subdir, _, archivos in os.walk(carpeta_raiz):
@@ -148,7 +148,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                             # TRATAMIENTO DE DATOS PARA LA CÉDULA Y NOMBRE
                             nombre = line[3:]
-                            nombre, cedula = dividir_por_delimitadores([" CC ", " NIT. ", " X", " # "," (MENOR) X"," TI "], nombre)
+                            nombre, cedula = dividir_por_delimitadores([" CC "," TI ", " NIT. ","(MENOR) X"," (MENOR) X", " X", " # "], nombre)
                             if resultado: #sirve para cuando solo hay una anotación nro 1.
                                 contador += 1
                                 if count_nr1_a == contador:
