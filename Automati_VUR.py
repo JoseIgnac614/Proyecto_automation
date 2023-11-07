@@ -98,7 +98,8 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 driver.get("https://www.vur.gov.co/siteminderagent/forms_es-ES/loginsnr.fcc?TYPE=100663297&REALMOID=06-6c1363d6-46ce-4693-bea4-501339aa6485&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=-SM-fqc7JfbsitKYA98880nx7GzOWf3PHSx%2frBwpwn0hvw7giR0TRx5Ii32r0m4mIlPP&TARGET=-SM-HTTP%3a%2f%2fwww%2evur%2egov%2eco%2fportal%2fpages%2fvur%2finicio%2ejsf%3furl%3d-%2Fportal-%2FPantallasVUR-%2F-%23-%2F-%3Ftipo-%3DdatosBasicosTierras")
 
 count = 1
-while sheet['A'+str(count)].value != None:
+
+while sheet.cell(row=count, column=1).value is not None:
     while True:
         try:
             # Lee el valor de la celda
