@@ -47,6 +47,25 @@ archivo_excel = openpyxl.load_workbook(carpeta_almacenamiento+nombre_excel)
 hoja = archivo_excel['informacion_propiedades']
 hojajuridico = archivo_excel['nombres_cedulas']
 
+def search_element_click(edito):
+    driver.execute_script("arguments[0].scrollIntoView();", edito)   
+    time.sleep(.5)     
+    
+    encontrado = False
+    
+    while not encontrado:
+        try:
+            # Intenta encontrar el elemento
+            edito.click()
+            encontrado = True
+        except:
+            # Si no se encuentra el elemento, desplaza el scroll hacia arriba
+            driver.execute_script("window.scrollBy(0, -100);")
+            # Espera un momento para que la página se cargue y se actualice
+            time.sleep(.7)  
+    time.sleep(.5)    
+    
+    
 def quitar_acentos(texto):
     acentos = {
         'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
@@ -84,13 +103,16 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula=""):
         tipo_id_selecc = False                                 #En qué tipo de id fue encontrado el interesado
         fix_ced = False
         fix_gen = False
-        same_nombres = 0                    #cuantos nombres iguales se encontraron
         tipo_id_selecc_str = ""
         cedula_selecc = ""
         editar_selecc = ""
         sn_sa_blank = False                 #Para saber cuando sn y sa no tienen nada y volver a pasar
+        cambiosn_unavez = False
+        same_nombres = 0                    #cuantos nombres iguales se encontraron
         while True:
-            if sn_sa_blank == True:
+            if sn_sa_blank == True and posicion_id == 0 and cambiosn_unavez:
+                
+                cambiosn_unavez = False
                 time.sleep(.5)
                 ay = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#LIMPIARCAMPOS")))
                 ay.click()
@@ -113,13 +135,16 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula=""):
                 
                 try: 
                     driver.find_element(By.CSS_SELECTOR, "#vTIPOIDENTIFICACION_ID").send_keys(tipo_id[posicion_id])
-                    
                     time.sleep(2)
                     # if posicion_id == 2:
                     #     print ("hola")
                     if posicion_id == 0:
+                        driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+                        time.sleep(.5)
                         driver.find_element(By.CSS_SELECTOR, "#GRIDPAGINATIONBARContainer_DVPaginationBar > div.PaginationBarCaption.dropdown > div > button").click()
                         driver.find_element(By.XPATH, "//ul/li/a/span[contains(text(), 'All rows')]").click()
+                        time.sleep(.5)
+                        driver.execute_script("window.scrollTo(0,0)")
                         
                     time.sleep(1)
                     wait = WebDriverWait(driver, 10)
@@ -140,7 +165,7 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula=""):
                             nombre = quitar_acentos(nombre_elemento[0].text)
                             cuantos += 1
                             print(nombre)   #Saber qué nombres se enlistan
-                            if nombre == pn+sn+pa+sa or nombre == pn+pa+sa:
+                            if (nombre == pn+sn+pa+sa) or ((nombre == pn+pa+sa) and (not sn_sa_blank)):
                                 tipo_id_selecc_str = tipo_id[posicion_id]                                               
                                 same_nombres +=1
                                 same_nombres_ciclo += 1
@@ -155,10 +180,11 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula=""):
                                     # Verifica si la cadena de texto que estás buscando se encuentra en la celda
                                     sin_acento = quitar_acentos(fila[0])
                                     nombres_posibles = [pn + sn + pa + sa,
-                                                        pn + pa + sa,
-                                                        " " + pn + sn + pa + sa,
-                                                        " " + pn + pa + sa]
-
+                                                        " " + pn + sn + pa + sa
+                                                        ]
+                                    if not sn_sa_blank:
+                                        nombres_posibles.append( pn + pa + sa)
+                                        nombres_posibles.append(" " + pn + pa + sa)
                                     if any(nombre in sin_acento for nombre in nombres_posibles):
                                         if cedula_selecc != (fila[3] and '0') or '-' in cedula_selecc:
                                             fix_ced = True 
@@ -186,16 +212,14 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula=""):
                     posicion_id += 1
                     if posicion_id > 2:
                         if sn == '' and sa == '' and same_nombres == 0 and not sn_sa_blank:
-                            posicion_id = 0
+                            cambiosn_unavez = True
+                            posicion_id = -1
                             sn_sa_blank = True
-                        else:
-                            break
-                    tipo_id_selecc = True
+                        break
             
-            posicion_id += 1
-            if posicion_id > 2:
+            if posicion_id >= 2:
                 break
-                    
+            posicion_id += 1        
                             #print(nombre)   #Saber qué nombres se enlistan
                     #print (cuantos)         #Saber cuantos nombres hay listados
         if same_nombres == 0 and cedula == "":
@@ -210,33 +234,61 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula=""):
             genre = "MASCULINO"
         elif genre == "M":
             genre = "FEMENINO"          
-                  
+        
+        
+        
         if same_nombres != 0:
             wait = WebDriverWait(driver, 10)
             time.sleep(.4)
             driver.find_element(By.CSS_SELECTOR, "#vTIPOIDENTIFICACION_ID").send_keys(tipo_id_selecc_str)
-            time.sleep(.5)
-            wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#vUPDATE_"+editar_selecc))) # Ajusta el selector según tu página.
-            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))            
-            driver.find_element(By.CSS_SELECTOR, "#vUPDATE_"+editar_selecc).click()
-            driver.find_element(By.CSS_SELECTOR, "#vUPDATE_"+editar_selecc).click()
             time.sleep(1.5)
+           
+            editar_inter = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#vUPDATE_"+editar_selecc))) # Ajusta el selector según tu página.
+            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask"))) 
+            edito = driver.find_element(By.CSS_SELECTOR, "#vUPDATE_"+editar_selecc)
             
-            #wait.until(EC.text_to_be_present_in_element_value((By.CSS_SELECTOR, "#vACTMIENINTENUMDOC"), cedula_selecc))  
+            driver.execute_script("arguments[0].scrollIntoView();", edito)   
+            time.sleep(.5)     
+    
+            encontrado = False
+            
+            while not encontrado:
+                try:
+                    # Intenta encontrar el elemento
+                    editar_inter.click()
+                    encontrado = True
+                except:
+                    # Si no se encuentra el elemento, desplaza el scroll hacia arriba
+                    driver.execute_script("window.scrollBy(0, -100);")
+                    # Espera un momento para que la página se cargue y se actualice
+                    time.sleep(.7)  
+            time.sleep(.5)  
+            
+            driver.execute_script("window.scrollTo(0,0)")
+            time.sleep(1)
             
             if fix_ced:
                 driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTENUMDOC").clear()
                 driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTENUMDOC").send_keys(cedula)
                 wait.until(EC.text_to_be_present_in_element_value((By.CSS_SELECTOR, "#vACTMIENINTENUMDOC"), str(cedula)))  
                 time.sleep(2)
+            #wait.until(EC.text_to_be_present_in_element_value((By.CSS_SELECTOR, "#vACTMIENINTENUMDOC"), cedula_selecc))  
+            
+            
             
             driver.find_element(By.CSS_SELECTOR, "#vACTGENEROID").send_keys(genre)
             time.sleep(2)
             driver.find_element(By.CSS_SELECTOR, "#vACTGRUPOETNICOID").send_keys("Ninguno")
             time.sleep(1)
-            hola = driver.find_element(By.CSS_SELECTOR, "#vTIPOIDENTIFICACION_ID")
-            time.sleep(2)
-            hola.send_keys(tipo_id[0])
+            
+            if sn_sa_blank:            
+                pa = sn
+                sn = ''
+                driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTEPAPELLIDO").clear()
+                driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTEPAPELLIDO").send_keys(pa)
+                time.sleep(1)
+                driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTESNOMBRE").clear()
+
             # if fix_gen:
             #     driver.find_element(By.CSS_SELECTOR, "#vACTGENEROID").send_keys(genre)
             # if tipo_id_selecc:
@@ -566,9 +618,14 @@ def buscar_inter_malo(driver, datosjuridicos, sininteres, unaveznomas,n_ciclo,ma
     if sininteres and unaveznomas:
         wait = WebDriverWait(driver, 10)
         wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
-        time.sleep(5)
+        time.sleep(1.5)
         elementos_tr = driver.find_elements(By.TAG_NAME, "tr")
         for elemento in elementos_tr:
+            # driver.execute_script("window.scrollTo(0,0)")
+            # time.sleep(.5)
+            # encontrar = elemento.find_elements(By.CSS_SELECTOR, "td:nth-child(5) span")
+            # search_element_click(encontrar[0])
+            
             if datosjuridicos["Género"] == 'N':
                 buscar_nombre = elemento.find_elements(By.CSS_SELECTOR, "td:nth-child(9) span")
             else:
@@ -580,6 +637,7 @@ def buscar_inter_malo(driver, datosjuridicos, sininteres, unaveznomas,n_ciclo,ma
                 
                 if buscar_nombre != "":
                     contador_findnames += 1
+                    
                 
                 nombre_completo = datosjuridicos["Primer Nombre"] + datosjuridicos["Segundo Nombre"] + datosjuridicos["Primer Apellido"] + datosjuridicos["Segundo Apellido"]
                 nombre_sin_segundo_nombre = datosjuridicos["Primer Nombre"] + datosjuridicos["Primer Apellido"] + datosjuridicos["Segundo Apellido"]
@@ -674,7 +732,7 @@ while True:
     except:
         driver.refresh()
 
-fila_a_extraer = 4  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
+fila_a_extraer = 2  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
 veces_repetir_folio = 5
 datos_titulos = datos.copy()
 datos_titulosjuri = datosjuridicos.copy()
@@ -687,54 +745,54 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
         try:
             print ("Llenando la fila # ",fila_a_extraer,"...")
             # Extrae los datos de la fila y almacénalos en el diccionario
-            fila = hoja[fila_a_extraer]
-            for encabezado, columna in datos_titulos.items():
-                if columna:
-                    if fila[columna-1].value == None:
-                        datos[encabezado] = ""
-                    else:
-                        datos[encabezado] = fila[columna-1].value
-            
-            if flag != 1:    
-                driver.get("https://www.realidad5.com/realmultipropositosahagun/servlet/com.realmultipropositogam.wwfichprediact")
-                wait = WebDriverWait(driver, 5)
-                holi = WebDriverWait(driver, 10)
-                while True:
-                    try:
-                        mas = holi.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#ACTIONNEW"))) # Ajusta el selector según tu página.
-                        mas.click()
-                        break
-                    except:
-                        driver.refresh()
-            wait = WebDriverWait(driver, 3)   
-            time.sleep(1)
-            wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#vACTPREDIOESTADO")))
-            driver.find_element(By.CSS_SELECTOR, "#vACTPREDIOESTADO").send_keys("Activo")
-            matricula = driver.find_element(By.CSS_SELECTOR, "#vACTPREDIOMATRICULA")
-            matricula.clear()
-            matricula.send_keys(datos['Folio'])
-            flag = 0
-            time.sleep(2)
-                            
-            while True:
-                try:
-                    
-                    matricula = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#vUPDATE_0001")))
-                    matricula.click()
-                    flag = 0
-                    break
-                except:
-                    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#vACTPREDIOESTADO")))
-                    driver.find_element(By.CSS_SELECTOR, "#vACTPREDIOESTADO").send_keys("Realizado")
-                    if flag == 1:
-                        nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+3)
-                        nueva_celda.value = "Unfounded"
-                        break
-                    flag = 1
             nueva_celda1 = hoja.cell(row=fila_a_extraer, column=columna_max + 1)
-            
             if nueva_celda1.value is not None and nueva_celda1.value != "NO SE LLENÓ FOLIO, REVISAR":
                 flag = 1
+            else:
+                fila = hoja[fila_a_extraer]
+                for encabezado, columna in datos_titulos.items():
+                    if columna:
+                        if fila[columna-1].value == None:
+                            datos[encabezado] = ""
+                        else:
+                            datos[encabezado] = fila[columna-1].value
+                
+                if flag != 1:    
+                    driver.get("https://www.realidad5.com/realmultipropositosahagun/servlet/com.realmultipropositogam.wwfichprediact")
+                    wait = WebDriverWait(driver, 5)
+                    holi = WebDriverWait(driver, 10)
+                    while True:
+                        try:
+                            mas = holi.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#ACTIONNEW"))) # Ajusta el selector según tu página.
+                            mas.click()
+                            break
+                        except:
+                            driver.refresh()
+                wait = WebDriverWait(driver, 3)   
+                time.sleep(1)
+                wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#vACTPREDIOESTADO")))
+                driver.find_element(By.CSS_SELECTOR, "#vACTPREDIOESTADO").send_keys("Activo")
+                matricula = driver.find_element(By.CSS_SELECTOR, "#vACTPREDIOMATRICULA")
+                matricula.clear()
+                matricula.send_keys(datos['Folio'])
+                flag = 0
+                time.sleep(2)
+                                
+                while True:
+                    try:
+                        
+                        matricula = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#vUPDATE_0001")))
+                        matricula.click()
+                        flag = 0
+                        break
+                    except:
+                        wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#vACTPREDIOESTADO")))
+                        driver.find_element(By.CSS_SELECTOR, "#vACTPREDIOESTADO").send_keys("Realizado")
+                        if flag == 1:
+                            nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+3)
+                            nueva_celda.value = "Unfounded"
+                            break
+                        flag = 1
 
             if flag != 1:
                 time.sleep(5)
@@ -876,7 +934,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                             driver.find_element(By.XPATH, '//*[@id="W0062GRIDPAGINATIONBARContainer_DVPaginationBar"]/div[2]/div/ul/li[6]/a/span').click()
                             wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#W0062GridContainerRow_0001'))) 
                             time.sleep(.6)
-                            driver.find_element(By.CSS_SELECTOR, "#W0062CANCEL").send_keys(Keys.PAGE_UP)  
+                            driver.execute_script("window.scrollTo(0,0)")
                             
                         except:
                             print ("Sin interesados registrados, ",datos["Folio"])
@@ -929,8 +987,17 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                 if sininteres:
                                     panel = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#Tab_TAB1Containerpanel6')))
                                     panel.click()
+                                    
                                     time.sleep(1.5)
                                     wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'img[id^="W0054vDELETE2_"]')))
+                                    time.sleep(.5)
+                                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+                                    time.sleep(.5)
+                                    driver.find_element(By.CSS_SELECTOR, "#0054GRIDPAGINATIONBARContainer_DVPaginationBar > div.PaginationBarCaption.dropdown > div > button").click()
+                                    driver.find_element(By.XPATH, "//ul/li/a/span[contains(text(), 'All rows')]").click()
+                                    time.sleep(.5)
+                                    driver.execute_script("window.scrollTo(0,0)")
+                                    
                                     borrar = driver.find_elements(By.CSS_SELECTOR,'img[id^="W0054vDELETE2_"]')         #BORRAR DOCUMENTOS
                                     # Itera a través de los botones y haz clic en cada uno de ellos
                                     for boton in borrar:
@@ -1076,7 +1143,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                             driver.find_element(By.XPATH, '//*[@id="W0062GRIDPAGINATIONBARContainer_DVPaginationBar"]/div[2]/div/ul/li[6]/a/span').click()
                             wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#W0062GridContainerRow_0001'))) 
                             time.sleep(.6)
-                            driver.find_element(By.CSS_SELECTOR, "#W0062CANCEL").send_keys(Keys.PAGE_UP)  
+                            driver.execute_script("window.scrollTo(0,0)")
                         except:
                             print ("Sin interesados registrados, ",datos["Folio"])
                             sininteres = False
