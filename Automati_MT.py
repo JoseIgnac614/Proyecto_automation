@@ -79,7 +79,7 @@ def quitar_acentos(texto):
     
     return texto
 
-def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula=""):
+def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
 #def crear_interes(pn,pa,genre):
     # Abre el archivo de Excel R1
     archivo_excel = openpyxl.load_workbook('R1.xlsx')
@@ -129,6 +129,12 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula=""):
             pepo = driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTEPAPELLIDO")
             pepo.clear()
             pepo.send_keys(pa)
+            
+            if ced_intered_found != '':
+                time.sleep(1)
+                driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTENUMDOC").clear()
+                driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTENUMDOC").send_keys(cedula)
+                wait.until(EC.text_to_be_present_in_element_value((By.CSS_SELECTOR, "#vACTMIENINTENUMDOC"), str(cedula)))  
             
             tipo_id = ["Cedula Ciudadanía","Tarjeta Identidad","Secuencial"]
             
@@ -1016,13 +1022,19 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     sininteres = False
                             
                             if any(buscar_malos):
+                                if buscar_malos[1]:
+                                    ced_encontrada = cedula_sinborrar
+                                else:
+                                    ced_encontrada = ''
+                                
                                 r_cedula,r_bool = crear_interes(datosjuridicos["Primer Nombre"],
                                                     datosjuridicos["Segundo Nombre"],
                                                     datosjuridicos["Primer Apellido"],
                                                     datosjuridicos["Segundo Apellido"],
                                                     datosjuridicos["Género"],
                                                     i+1,
-                                                    datosjuridicos["Cédulas"]
+                                                    datosjuridicos["Cédulas"],
+                                                    ced_encontrada,
                                                     )
                                 
                                 lista_cedulas.append(r_cedula)
