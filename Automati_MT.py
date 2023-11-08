@@ -39,7 +39,8 @@ soup = BeautifulSoup(html, "html.parser")
 
 indice_folio = "148-"
 # Abre el archivo Excel
-carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/'
+#carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/'
+carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/07-11-2023/"
 nombre_excel = 'Libro1.xlsx'
 archivo_excel = openpyxl.load_workbook(carpeta_almacenamiento+nombre_excel)
 
@@ -274,7 +275,8 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula=""):
                 time.sleep(2)
             #wait.until(EC.text_to_be_present_in_element_value((By.CSS_SELECTOR, "#vACTMIENINTENUMDOC"), cedula_selecc))  
             
-            
+            driver.find_element(By.CSS_SELECTOR, "#vTIPOIDENTIFICACION_ID").send_keys(tipo_id[0])
+            time.sleep(1.5)
             
             driver.find_element(By.CSS_SELECTOR, "#vACTGENEROID").send_keys(genre)
             time.sleep(2)
@@ -577,7 +579,7 @@ def set_zero_intereados(list_identificacion, lis_cedulas,list_booleanos):
                     if error_count > 6:
                         ocurre_error = True
                         break
-                    error_count =+ 1
+                    error_count += 1
             if ocurre_error:
                 break
     if ocurre_error:
@@ -732,7 +734,7 @@ while True:
     except:
         driver.refresh()
 
-fila_a_extraer = 2  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
+fila_a_extraer = 62  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
 veces_repetir_folio = 5
 datos_titulos = datos.copy()
 datos_titulosjuri = datosjuridicos.copy()
@@ -831,6 +833,8 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                     cedulas_revisar = fila_cedulas - fila_juridico
                     fila_juridico_inicial = fila_juridico
                     if juridico == False:
+                        aviso_vur = hoja.cell(row=fila_a_extraer, column=columna_max+ 4)
+                        aviso_vur.value = "NO HUBO COINCIDENCIA FOLIO BASICO CON EL JURIDICO"
                         print ("NO HUBO COINCIDENCIA FOLIO BASICO CON EL JURIDICO: ",datos['Folio'])
                     else:
                         # Extrae los datos de la fila y almacénalos en el diccionario
@@ -967,6 +971,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                             #--------------------------------------------
                             buscar_malos,cedula_sinborrar = buscar_inter_malo(driver, datosjuridicos, sininteres, unaveznomas,i,cedulas_revisar)
                             #--------------------------------------------
+                            #buscar_malos[2] = True
                             if buscar_malos[2]:
                                 unaveznomas = False
                                 firstced = False
@@ -993,8 +998,9 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     time.sleep(.5)
                                     driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
                                     time.sleep(.5)
-                                    driver.find_element(By.CSS_SELECTOR, "#0054GRIDPAGINATIONBARContainer_DVPaginationBar > div.PaginationBarCaption.dropdown > div > button").click()
-                                    driver.find_element(By.XPATH, "//ul/li/a/span[contains(text(), 'All rows')]").click()
+                                    driver.find_element(By.CSS_SELECTOR, "#W0054GRIDPAGINATIONBARContainer_DVPaginationBar > div.PaginationBarCaption.dropdown > div > button").click()
+                                    driver.find_element(By.CSS_SELECTOR, "#W0054GRIDPAGINATIONBARContainer_DVPaginationBar > div.PaginationBarCaption.dropdown > div > ul > li:nth-child(6) > a > span").click()
+                                    
                                     time.sleep(.5)
                                     driver.execute_script("window.scrollTo(0,0)")
                                     

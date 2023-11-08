@@ -33,10 +33,10 @@ prefs = {
         'version': 2,
     }),
 }
-directorio = "C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/Libro1.xlsx"
-#directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/01-11-2023/Libro1.xlsx"
+#directorio = "C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/Libro1.xlsx"
+directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/07-11-2023/Libro1.xlsx"
 
-DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
+DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
 
 # Abre el archivo de Excel
 workbook = openpyxl.load_workbook(directorio)
@@ -102,6 +102,7 @@ count = 1
 while sheet.cell(row=count, column=1).value is not None:
     while True:
         try:
+            driver.get("https://www.vur.gov.co/siteminderagent/forms_es-ES/loginsnr.fcc?TYPE=100663297&REALMOID=06-6c1363d6-46ce-4693-bea4-501339aa6485&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=-SM-fqc7JfbsitKYA98880nx7GzOWf3PHSx%2frBwpwn0hvw7giR0TRx5Ii32r0m4mIlPP&TARGET=-SM-HTTP%3a%2f%2fwww%2evur%2egov%2eco%2fportal%2fpages%2fvur%2finicio%2ejsf%3furl%3d-%2Fportal-%2FPantallasVUR-%2F-%23-%2F-%3Ftipo-%3DdatosBasicosTierras")
             # Lee el valor de la celda
             valor_excel = sheet['A'+str(count)].value  # Reemplaza 'A1' por la celda que deseas usar
             valor_cadena = valor_indice + "-" + str(valor_excel)

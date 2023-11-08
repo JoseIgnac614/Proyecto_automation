@@ -46,7 +46,8 @@ def dividir_por_delimitadores(delimitadores, texto):
     return texto, ""
 
 # Carpeta que contiene los archivos PDF
-carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/"
+#carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/07-11-2023/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
@@ -187,58 +188,63 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 folio = archivo_pdf.split("-")[1].split(" ")[0] if "-" in archivo_pdf and " " in archivo_pdf else None # Obtener el número del nombre del archivo PDF
                 texto_celda = "\n".join(texto_lineas)
                 
-                # Buscar la primera fecha en formato DD-MM-AAAA
-                date_registro_match = re.search(r'\d{2}-\d{2}-\d{4}', texto_celda)
-                date_registro = date_registro_match.group(0) if date_registro_match else None
+                if texto_celda != '':
+                    # Buscar la primera fecha en formato DD-MM-AAAA
+                    date_registro_match = re.search(r'\d{2}-\d{2}-\d{4}', texto_celda)
+                    date_registro = date_registro_match.group(0) if date_registro_match else None
 
-                # Buscar la primera fecha en formato AAAA-MM-DD después del primer salto de línea
-                date_documento_match = re.search(r'DEL (\d{4}-\d{2}-\d{2}) ', texto_celda)
-                date_documento = date_documento_match.group(1) if date_documento_match else None
-                date_documento = datetime.strptime(date_documento, "%Y-%m-%d").strftime("%d-%m-%Y")
+                    # Buscar la primera fecha en formato AAAA-MM-DD después del primer salto de línea
+                    date_documento_match = re.search(r'DEL (\d{4}-\d{2}-\d{2}) ', texto_celda)
+                    date_documento = date_documento_match.group(1) if date_documento_match else None
+                    if folio == '32666':
+                        print ('error fecha->>',folio)
+                    date_documento = datetime.strptime(date_documento, "%Y-%m-%d").strftime("%d-%m-%Y")
 
-                # Buscar la primera palabra después de "Doc: "
-                escritura_match = re.search(r'Doc: (\w+)', texto_celda)
-                escritura = escritura_match.group(1) if escritura_match else None
+                    # Buscar la primera palabra después de "Doc: "
+                    escritura_match = re.search(r'Doc: (\w+)', texto_celda)
+                    escritura = escritura_match.group(1) if escritura_match else None
 
-                # Buscar el primer número después del primer salto de línea
-                n_escritura_match = re.search(r'(\d+) DEL', texto_celda)
-                n_escritura = n_escritura_match.group(1) if n_escritura_match else None
+                    # Buscar el primer número después del primer salto de línea
+                    n_escritura_match = re.search(r'(\d+) DEL', texto_celda)
+                    n_escritura = n_escritura_match.group(1) if n_escritura_match else None
 
-                # Buscar la cadena de caracteres entre "00:00:00 " y " VALOR"
-                ente_match = re.search(r':(\d+) (.*?) VALOR', texto_celda)
-                if ente_match:
-                    ente = ente_match.group(2).upper()
-                    if "JUZGADO" not in ente:
-                        # Divide la cadena en dos partes usando " DE " como delimitador
-                        ente_partes = ente.split(" DE ", 1)
+                    # Buscar la cadena de caracteres entre "00:00:00 " y " VALOR"
+                    ente_match = re.search(r':(\d+) (.*?) VALOR', texto_celda)
+                    if ente_match:
+                        ente = ente_match.group(2).upper()
+                        if "JUZGADO" not in ente:
+                            # Divide la cadena en dos partes usando " DE " como delimitador
+                            ente_partes = ente.split(" DE ", 1)
 
-                        # Reordena las partes y las une en una sola cadena
-                        ente = ente_partes[1] +" "+ ente_partes[0]
-                    elif ("PRIMERO" or "SEGUNDO") in ente:
-                        ente = ente.replace("PRIMERO", "001")
-                        ente = ente.replace("SEGUNDO", "002")
+                            # Reordena las partes y las une en una sola cadena
+                            ente = ente_partes[1] +" "+ ente_partes[0]
+                        elif ("PRIMERO" or "SEGUNDO") in ente:
+                            ente = ente.replace("PRIMERO", "001")
+                            ente = ente.replace("SEGUNDO", "002")
+                        else:
+                            ente = ente.replace("JUZGADO", "JUZGADO 001")
+                            
                     else:
-                        ente = ente.replace("JUZGADO", "JUZGADO 001")
-                        
-                else:
-                    ente = None
-                
-                primer_nombre = []
-                segundo_nombre = []
-                primer_apellido = []
-                segundo_apellido = []
+                        ente = None
+                    
+                    primer_nombre = []
+                    segundo_nombre = []
+                    primer_apellido = []
+                    segundo_apellido = []
 
-                # Dividir nombres en primer nombre, segundo nombre, primer apellido y segundo apellido
-                #print ("nombres_celda-> ",nombres_celda)
-                if nombres != "":
-                    i=0
-                    while i < len(nombres):
-                        pn, sn,pa, sa = dividir_nombres(nombres[i])
-                        primer_nombre.append(pn)
-                        segundo_nombre.append(sn)
-                        primer_apellido.append(pa)
-                        segundo_apellido.append(sa) 
-                        i += 1
+                    # Dividir nombres en primer nombre, segundo nombre, primer apellido y segundo apellido
+                    #print ("nombres_celda-> ",nombres_celda)
+                    if nombres != "":
+                        i=0
+                        while i < len(nombres):
+                            pn, sn,pa, sa = dividir_nombres(nombres[i])
+                            primer_nombre.append(pn)
+                            segundo_nombre.append(sn)
+                            primer_apellido.append(pa)
+                            segundo_apellido.append(sa) 
+                            i += 1
+                else:
+                    ph = 'COLOCAR DATOS MANUALMENTE'
 
                 # Guardar los datos en el archivo CSV si se encontró " X "
                 with open(archivo_csv, "a", newline="", encoding="utf-8") as csv_file:
