@@ -39,8 +39,8 @@ soup = BeautifulSoup(html, "html.parser")
 
 indice_folio = "148-"
 # Abre el archivo Excel
-#carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/'
-carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/07-11-2023/"
+carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/07-11-2023/'
+#carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/07-11-2023/"
 nombre_excel = 'Libro1.xlsx'
 archivo_excel = openpyxl.load_workbook(carpeta_almacenamiento+nombre_excel)
 
@@ -133,7 +133,7 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
             if ced_intered_found != '':
                 time.sleep(1)
                 driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTENUMDOC").clear()
-                driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTENUMDOC").send_keys(cedula)
+                driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTENUMDOC").send_keys(ced_intered_found)
                 wait.until(EC.text_to_be_present_in_element_value((By.CSS_SELECTOR, "#vACTMIENINTENUMDOC"), str(cedula)))  
             
             tipo_id = ["Cedula Ciudadanía","Tarjeta Identidad","Secuencial"]
@@ -672,13 +672,14 @@ def buscar_inter_malo(driver, datosjuridicos, sininteres, unaveznomas,n_ciclo,ma
 
                     if datosjuridicos["Género"] in ("H", "M") and buscar_gen == "SIN_DETERMINAR":
                         buscar_malos[3] = True
-                        
-                    if max_ciclo != n_ciclo+1:
-                        break
-                    else:
+                    
+       
+                    if max_ciclo == n_ciclo+1:
                         bool_avisar = True
+                    else:
+                        break
                 
-    if contador_findnames != max_ciclo and bool_avisar:
+    if contador_findnames > max_ciclo and bool_avisar:
         buscar_malos[2] = True                    
     return buscar_malos,cedsinborrar
 
@@ -740,7 +741,7 @@ while True:
     except:
         driver.refresh()
 
-fila_a_extraer = 62  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
+fila_a_extraer = 2  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
 veces_repetir_folio = 5
 datos_titulos = datos.copy()
 datos_titulosjuri = datosjuridicos.copy()
@@ -1022,7 +1023,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     sininteres = False
                             
                             if any(buscar_malos):
-                                if buscar_malos[1]:
+                                if buscar_malos[1] and cedula_sinborrar != '0':
                                     ced_encontrada = cedula_sinborrar
                                 else:
                                     ced_encontrada = ''
@@ -1146,7 +1147,6 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                         if any(lista_bool) and unaveznomas == False or falta_cedula:
                             set_zero_intereados(lista_tipoid,lista_cedulas,lista_bool)
                         
-                        derechos()
                         
                         time.sleep(.4)
                         driver.find_element(By.CSS_SELECTOR,'#Tab_TAB1Containerpanel7').click()
@@ -1201,7 +1201,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                             buscar_malos,poop = buscar_inter_malo(driver, datosjuridicos, True, True,i,cedulas_revisar)
                             if any(buscar_malos):
                                 raise Exception('ERROR: Última comprobación de interesados, fallida')
-
+                    derechos()
                     wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
                     driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel1").click()
                     time.sleep(0.5)
