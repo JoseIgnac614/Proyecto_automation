@@ -34,7 +34,7 @@ prefs = {
     }),
 }
 #directorio = "C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/Libro1.xlsx"
-directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/07-11-2023/Libro1.xlsx"
+directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/08-11-2023/Libro1.xlsx"
 
 DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
 
@@ -230,7 +230,7 @@ while sheet.cell(row=count, column=1).value is not None:
             driver.switch_to.frame(iframe)
             
             elapsed_time = time.time() - start_time                 #Por si el folio no está en el vur
-            if elapsed_time >= 5:
+            if elapsed_time >= 10:
                 if flag == 2:
                     start_time = time.time()
                     flag = 1

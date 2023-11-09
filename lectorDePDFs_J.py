@@ -47,7 +47,7 @@ def dividir_por_delimitadores(delimitadores, texto):
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/07-11-2023/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/08-11-2023/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
@@ -60,10 +60,11 @@ primer_apellido = []
 segundo_apellido = []
 cedulas = []
 anotacionesfuera = ["CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION","ESTA ANOTACION NO TIENE VALIDEZ", "PATRIMONIO DE FAMILIA"]
-
+count_pdfs = 0
 # Itera a través de los archivos PDF en la carpeta
 for subdir, _, archivos in os.walk(carpeta_raiz):
     for archivo_pdf in archivos:
+        folio = archivo_pdf.split("-")[1].split(" ")[0] if "-" in archivo_pdf and " " in archivo_pdf else None # Obtener el número del nombre del archivo PDF
         if archivo_pdf.endswith(".pdf") and ("J" in archivo_pdf or "j" in archivo_pdf):
             pdf_path = os.path.join(subdir, archivo_pdf)
 
@@ -73,6 +74,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 encontrado_an = False # Indica si se ha encontrado "ANOTACION"
                 encontrado_de = False # Indica si se ha encontrado un "DE:"
                 encontrado_nr2 = False # Indica si ya pasó por la anotacion nro 2
+                encontrado_nohaymas = False #Cuando solo queda por validar anotacion 1, este está en true
                 count_anotacion = 0 # Contador para contar la cantidad de veces que se encuentra la palabra "ANOTACION"
                 count_anotacion_nro_1 = 0 # Contador para contar la cantidad de veces que se encuentra la palabra "ANOTACION"
                 anot1 = False
@@ -87,7 +89,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 cedulas = []  # Lista para almacenar las cédulas
                 servidumbre = "NO"
                 ph = "NO"
-
+                
                 for page in reversed(pdf.pages):
                     # Contar cuántas veces aparece "ANOTACION: Nro 1" y "ANOTACION" en todas las líneas
                     lines = page.extract_text().splitlines()
@@ -120,14 +122,14 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         #     print ("tons")
                         if "DE:" in line:           #para poder guardar un párrafo solo cuando tenga "DE:"
                             encontrado_de = True
-                        elif any(keyword in line for keyword in anotacionesfuera):      #CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION"
+                        elif any(keyword in line for keyword in anotacionesfuera) and ('SANEAMIENTO' not in line) and encontrado_nohaymas == False:      #CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION"
                             encontrado_de = False
                         elif "Se cancela anotación No: " in line:
                             # Buscar números después de "No:"
                             nuevos_numeros = [numero.strip() for numero in line.split("No: ")[1].split(",")]
                             numeros_cancelados = numeros_cancelados + nuevos_numeros
                         
-                        if ("A:" or "DE:") in line and encontrado_nr2:
+                        if ("A:" in line or "DE:" in line) and encontrado_nr2:
                             encontrado_nr2 = encontrado_de = True
                             
                             # Verificar si existe "ANOTACION: Nro " seguido de los números cancelados
@@ -178,14 +180,17 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                 texto_lineas = []
                         if "ANOTACION" in line:
                             encontrado_de = False
-                        if "ANOTACION: Nro 2 " in line:
+                        # if folio == '28460':
+                        #     print ("hola")
+                        if "ANOTACION: Nro 2 " in line or 'ANOTACION: *** ESTA ANOTACION NO TIENE VALIDEZ *** Nro 2' in line:
                             encontrado_nr2 = True
+                            encontrado_nohaymas = True
                             
                 # Combinar nombres y cédulas en una sola celda con saltos de línea
                 #print (nombres)
                 # nombres_celda = "\n".join(nombres)
                 # cedulas_celda = "\n".join(cedulas)
-                folio = archivo_pdf.split("-")[1].split(" ")[0] if "-" in archivo_pdf and " " in archivo_pdf else None # Obtener el número del nombre del archivo PDF
+                
                 texto_celda = "\n".join(texto_lineas)
                 
                 if texto_celda != '':
@@ -196,8 +201,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     # Buscar la primera fecha en formato AAAA-MM-DD después del primer salto de línea
                     date_documento_match = re.search(r'DEL (\d{4}-\d{2}-\d{2}) ', texto_celda)
                     date_documento = date_documento_match.group(1) if date_documento_match else None
-                    if folio == '32666':
-                        print ('error fecha->>',folio)
+                    # if folio == '32666':
+                    #     print ('error fecha->>',folio)
                     date_documento = datetime.strptime(date_documento, "%Y-%m-%d").strftime("%d-%m-%Y")
 
                     # Buscar la primera palabra después de "Doc: "
@@ -259,11 +264,15 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     
                     # Agregar los datos del archivo PDF actual
                     i = 0
+                    if len(nombres) == 0:
+                        print("No se agregó foliooooo: ",folio)
+                    else:
+                        count_pdfs += 1
                     while i < len(nombres):
                         if i == 0:
                             csv_writer.writerow([archivo_pdf,folio, servidumbre, ph, texto_celda,date_registro,date_documento,escritura,n_escritura,ente, cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i]])
                         else:
-                            csv_writer.writerow(["", "","","","", "","","","", "",cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i]])
+                            csv_writer.writerow(["", folio,"","","", "","","","", "",cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i]])
                         i += 1
 
                 # Limpiar las listas para el próximo archivo PDF
@@ -271,4 +280,4 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 cedulas.clear()
                 texto_lineas.clear()
 
-print(f"Se ha analizado y guardado la información en {archivo_csv}.")
+print(f"Se ha analizado y guardado la información en {archivo_csv} de {count_pdfs} PDFs")
