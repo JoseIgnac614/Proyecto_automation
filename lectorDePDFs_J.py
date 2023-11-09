@@ -59,7 +59,7 @@ segundo_nombre = []
 primer_apellido = []
 segundo_apellido = []
 cedulas = []
-anotacionesfuera = ["CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION","ESTA ANOTACION NO TIENE VALIDEZ", "PATRIMONIO DE FAMILIA"]
+anotacionesfuera = ["CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION","ESTA ANOTACION NO TIENE VALIDEZ", "PATRIMONIO DE FAMILIA","DECLARACION DE MEJORAS"]
 count_pdfs = 0
 # Itera a través de los archivos PDF en la carpeta
 for subdir, _, archivos in os.walk(carpeta_raiz):

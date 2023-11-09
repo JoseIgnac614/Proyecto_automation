@@ -39,7 +39,7 @@ soup = BeautifulSoup(html, "html.parser")
 
 indice_folio = "148-"
 # Abre el archivo Excel
-carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/07-11-2023/'
+carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/08-11-2023/'
 #carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/07-11-2023/"
 nombre_excel = 'Libro1.xlsx'
 archivo_excel = openpyxl.load_workbook(carpeta_almacenamiento+nombre_excel)
@@ -410,12 +410,12 @@ def crear_fuente(fuente,date_doc,ente,date_reg,n_fuente="SN"):
     matricula = driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel3")
     matricula.click()
     time.sleep(1)
-    date_doc = date_doc.replace("-","/")
-    date_reg = date_reg.replace("-","/")
-    date_doc = datetime.strptime(date_doc,"%d/%m/%Y")
+    # date_doc = date_doc.replace("-","/")
+    # date_reg = date_reg.replace("-","/")
+    # date_doc = datetime.strptime(date_doc,"%d/%m/%Y")
     date_doc = date_doc.strftime("%d/%m/%Y")
     
-    date_reg = datetime.strptime(date_reg,"%d/%m/%Y")
+    # date_reg = datetime.strptime(date_reg,"%d/%m/%Y")
     date_reg = date_reg.strftime("%d/%m/%Y")
     # Define un diccionario con los selectores CSS y sus valores
     campos = {
