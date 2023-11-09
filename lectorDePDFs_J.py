@@ -60,7 +60,7 @@ primer_apellido = []
 segundo_apellido = []
 cedulas = []
 anotacionesfuera = ["CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION","ESTA ANOTACION NO TIENE VALIDEZ", "PATRIMONIO DE FAMILIA"]
-
+count_pdfs = 0
 # Itera a través de los archivos PDF en la carpeta
 for subdir, _, archivos in os.walk(carpeta_raiz):
     for archivo_pdf in archivos:
@@ -266,6 +266,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     i = 0
                     if len(nombres) == 0:
                         print("No se agregó foliooooo: ",folio)
+                    else:
+                        count_pdfs += 1
                     while i < len(nombres):
                         if i == 0:
                             csv_writer.writerow([archivo_pdf,folio, servidumbre, ph, texto_celda,date_registro,date_documento,escritura,n_escritura,ente, cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i]])
@@ -278,4 +280,4 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 cedulas.clear()
                 texto_lineas.clear()
 
-print(f"Se ha analizado y guardado la información en {archivo_csv}.")
+print(f"Se ha analizado y guardado la información en {archivo_csv} de {count_pdfs} PDFs")
