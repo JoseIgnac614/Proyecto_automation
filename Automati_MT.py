@@ -258,17 +258,24 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
             time.sleep(.5)     
     
             encontrado = False
-            
+            conta = 0
+            vayase = False
             while not encontrado:
                 try:
                     # Intenta encontrar el elemento
                     editar_inter.click()
                     encontrado = True
                 except:
+                    
                     # Si no se encuentra el elemento, desplaza el scroll hacia arriba
                     driver.execute_script("window.scrollBy(0, -100);")
                     # Espera un momento para que la página se cargue y se actualice
-                    time.sleep(.7)  
+                    time.sleep(.7)
+                    if conta > 8:
+                        vayase = True
+                        break
+            if vayase == True:
+                raise Exception("ERROR: Se dañó en el ciclo del while de interesados") 
             time.sleep(.5)  
             
             driver.execute_script("window.scrollTo(0,0)")
