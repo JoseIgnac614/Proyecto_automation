@@ -3,6 +3,7 @@ import pdfplumber
 import csv
 import re
 from datetime import datetime
+import pandas as pd
 
 def dividir_nombres(nombre):
     nombres = nombre.split()
@@ -47,10 +48,12 @@ def dividir_por_delimitadores(delimitadores, texto):
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/08-11-2023/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/09-11-2023/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
+# Cargar el archivo CSV
+df = pd.read_csv('Data_generos.csv', sep=';')
 
 # Listas para almacenar los nombres y cédulas
 nombres = []
@@ -236,6 +239,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     segundo_nombre = []
                     primer_apellido = []
                     segundo_apellido = []
+                    genero = []
 
                     # Dividir nombres en primer nombre, segundo nombre, primer apellido y segundo apellido
                     #print ("nombres_celda-> ",nombres_celda)
@@ -243,11 +247,32 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         i=0
                         while i < len(nombres):
                             pn, sn,pa, sa = dividir_nombres(nombres[i])
+                            pn = pn.strip()
+                            sn = sn.strip()
+                            pa = pa.strip()
+                            sa = sa.strip()
+                            # Buscar el género correspondiente en el DataFrame
+                            #filtro = (df['primernombre'].str.strip() == pn) & (df['segundonombre'].str.strip() == sn)
+                            filtro = (df['primernombre'].str.strip() == pn)
+                            resultados = df[filtro]
+
+                            # Verificar si se encontraron coincidencias
+                            if not resultados.empty:
+                                genero_encontrado = resultados['sexo'].unique()
+                                if len(genero_encontrado) == 1:
+                                    genero.append(genero_encontrado[0])
+                                else:
+                                    genero.append("Nombre ambiguo, revisar")
+                            else:
+                                genero.append("No se encontró información de género")
+                            
                             primer_nombre.append(pn)
                             segundo_nombre.append(sn)
                             primer_apellido.append(pa)
                             segundo_apellido.append(sa) 
                             i += 1
+                            
+                        
                 else:
                     ph = 'COLOCAR DATOS MANUALMENTE'
 
@@ -257,7 +282,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                     # Agregar encabezados si el archivo está vacío
                     if os.path.getsize(archivo_csv) == 0:
-                        csv_writer.writerow(["Nombre de archivo","Folio", "Servidumbre", "PH","Texto", "Fecha registro","Fecha documento","Fuente adm.","N. Fuente","Ente Em.","Cédulas", "Primer Nombre", "Segundo Nombre", "Primer Apellido", "Segundo Apellido"])
+                        csv_writer.writerow(["Nombre de archivo","Folio", "Servidumbre", "PH","Texto", "Fecha registro","Fecha documento","Fuente adm.","N. Fuente","Ente Em.","Cédulas", "Primer Nombre", "Segundo Nombre", "Primer Apellido", "Segundo Apellido","Género"])
                     
                     if primer_nombre == []:
                         print ("No hay nadaaaaaaa, archivo: ", archivo_pdf)
@@ -270,9 +295,9 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         count_pdfs += 1
                     while i < len(nombres):
                         if i == 0:
-                            csv_writer.writerow([archivo_pdf,folio, servidumbre, ph, texto_celda,date_registro,date_documento,escritura,n_escritura,ente, cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i]])
+                            csv_writer.writerow([archivo_pdf,folio, servidumbre, ph, texto_celda,date_registro,date_documento,escritura,n_escritura,ente, cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i],genero[i]])
                         else:
-                            csv_writer.writerow(["", folio,"","","", "","","","", "",cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i]])
+                            csv_writer.writerow(["", folio,"","","", "","","","", "",cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i],genero[i]])
                         i += 1
 
                 # Limpiar las listas para el próximo archivo PDF
