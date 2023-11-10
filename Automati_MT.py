@@ -39,8 +39,8 @@ soup = BeautifulSoup(html, "html.parser")
 
 indice_folio = "148-"
 # Abre el archivo Excel
-carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/08-11-2023/'
-#carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/07-11-2023/"
+#carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
+carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/CORRECCIOES_PREDIOS_ANTES/"
 nombre_excel = 'Libro1.xlsx'
 archivo_excel = openpyxl.load_workbook(carpeta_almacenamiento+nombre_excel)
 

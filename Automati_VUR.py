@@ -34,7 +34,7 @@ prefs = {
     }),
 }
 #directorio = "C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/Libro1.xlsx"
-directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/08-11-2023/Libro1.xlsx"
+directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/09-11-2023/Libro1.xlsx"
 
 DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
 
