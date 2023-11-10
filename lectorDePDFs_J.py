@@ -47,8 +47,8 @@ def dividir_por_delimitadores(delimitadores, texto):
     return texto, ""
 
 # Carpeta que contiene los archivos PDF
-#carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/05-11-2023/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/09-11-2023/"
+carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
+#carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/09-11-2023/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
@@ -154,7 +154,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                             # TRATAMIENTO DE DATOS PARA LA CÉDULA Y NOMBRE
                             nombre = line[3:]
-                            nombre, cedula = dividir_por_delimitadores([" CC "," TI ", " NIT. ","(MENOR) X"," (MENOR) X", " X", " # "], nombre)
+                            nombre, cedula = dividir_por_delimitadores([" CC "," TI ", " NIT. ","(ME X","(MENOR) X"," (MENOR) X", " X", " # "], nombre)
                             if resultado: #sirve para cuando solo hay una anotación nro 1.
                                 contador += 1
                                 if count_nr1_a == contador:
