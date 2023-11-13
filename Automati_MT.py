@@ -40,8 +40,8 @@ soup = BeautifulSoup(html, "html.parser")
 indice_folio = "148-"
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/CORRECCIOES_PREDIOS_ANTES/"
-nombre_excel = 'Libro1.xlsx'
+carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/10-11-2023/"
+nombre_excel = 'Libro2.xlsx'
 archivo_excel = openpyxl.load_workbook(carpeta_almacenamiento+nombre_excel)
 
 # Selecciona la hoja en la que deseas trabajar
@@ -78,6 +78,66 @@ def quitar_acentos(texto):
         texto = texto.replace(acento, sin_acento)
     
     return texto
+
+def crear_servidumbre(cadenaserv,cadena_escritura):
+    
+    wait = WebDriverWait(driver, 10)
+    if cadenaserv != "NO":
+        time.sleep(1)
+        wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#Tab_TAB1Containerpanel1"))).click()
+        time.sleep(1)
+        checkbox = driver.find_element(By.CSS_SELECTOR, "#W0014vSERVIDUMBRE")      # BOTON DE QUE NO HAY AREA CATASTRAL
+        if not checkbox.is_selected():
+            checkbox.click()
+            time.sleep(1)
+            driver.find_element(By.CSS_SELECTOR, "#W0014GUARDAR").click()
+            time.sleep(1)
+            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
+       
+        
+        n_escritura,fecha = cadena_escritura.split(" DEL ")
+        fecha = datetime.strptime(fecha, "%Y-%m-%d")
+        date_doc = fecha.strftime('%d/%m/%Y')
+        #date_doc = date_doc.strftime("%d/%m/%Y")
+        
+        wait = WebDriverWait(driver, 10)
+        panel = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#Tab_TAB1Containerpanel5")))
+        panel.click()
+        time.sleep(1.5)
+        wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#W0046vACTSERVTIPOID")))
+        
+        try:
+            driver.find_element(By.CSS_SELECTOR, "#span_W0046ACTSERVTIPOID_0001")
+            time.sleep(1)
+            driver.find_element(By.CSS_SELECTOR, "#W0046vDELETE_0001").click()
+            time.sleep(1)
+            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
+        except:
+            print ("")
+        
+        
+        select_element = driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVTIPOID")  # Reemplaza el ID con el de tu select
+
+        options = select_element.find_elements(By.TAG_NAME, "option")
+
+        pattern = re.compile(r'_([^_]+)')
+        selectores = [pattern.search(option.text).group(1) for option in options if pattern.search(option.text)]
+
+        textito = f"ESTABLECIDA MEDIANTE ESCRITURA {n_escritura} DE {date_doc}"
+        
+        for i in selectores:
+            if i.upper() in cadenaserv:
+                time.sleep(1)
+                select_element.send_keys("Servidumbre_"+i)
+                time.sleep(1)
+                driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVIDUMBREOBS").send_keys(textito)
+                time.sleep(1)
+                driver.find_element(By.CSS_SELECTOR, "#W0046ENTER").click()
+                wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
+                time.sleep(1)
+                break
+                
+    
 
 def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
 #def crear_interes(pn,pa,genre):
@@ -183,21 +243,22 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
                                 genero_selecc = genero_selecc[0].text
                                 editar_selecc = elemento.get_attribute("data-gxrow")
                                 # Itera a través de las filas de la columna H
-                                for fila in hoja.iter_rows(min_col=8, max_col=11, values_only=True):                     #COMPARAR CEDULA CON ALGUNA EN R1
-                                    # Verifica si la cadena de texto que estás buscando se encuentra en la celda
-                                    sin_acento = quitar_acentos(fila[0])
-                                    nombres_posibles = [pn + sn + pa + sa,
-                                                        " " + pn + sn + pa + sa
-                                                        ]
-                                    if not sn_sa_blank:
-                                        nombres_posibles.append( pn + pa + sa)
-                                        nombres_posibles.append(" " + pn + pa + sa)
-                                    if any(nombre in sin_acento for nombre in nombres_posibles):
-                                        if cedula_selecc != (fila[3] and '0') or '-' in cedula_selecc:
-                                            fix_ced = True 
-                                            cedula = fila[3]
-                                    else:
-                                        fix_ced = True
+                                if cedula_selecc != str(cedula):
+                                    for fila in hoja.iter_rows(min_col=8, max_col=11, values_only=True):                     #COMPARAR CEDULA CON ALGUNA EN R1
+                                        # Verifica si la cadena de texto que estás buscando se encuentra en la celda
+                                        sin_acento = quitar_acentos(fila[0])
+                                        nombres_posibles = [pn + sn + pa + sa,
+                                                            " " + pn + sn + pa + sa
+                                                            ]
+                                        if not sn_sa_blank:
+                                            nombres_posibles.append( pn + pa + sa)
+                                            nombres_posibles.append(" " + pn + pa + sa)
+                                        if any(nombre in sin_acento for nombre in nombres_posibles):
+                                            if cedula_selecc != (fila[3] and '0') or '-' in cedula_selecc:
+                                                fix_ced = True 
+                                                cedula = fila[3]
+                                        else:
+                                            fix_ced = True
                                                             
                     if same_nombres_ciclo == 0:
                         raise Exception()
@@ -274,6 +335,7 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
                     if conta > 8:
                         vayase = True
                         break
+                    conta += 1
             if vayase == True:
                 raise Exception("ERROR: Se dañó en el ciclo del while de interesados") 
             time.sleep(.5)  
@@ -360,7 +422,7 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
     return cedula,cedula_cero
         
 def llenar_predio(hojainfo,mat_matriz,direccion,areaTerr):
-    
+    wait = WebDriverWait(driver, 10)
     matricula = driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel1")
     matricula.click()
     time.sleep(1)
@@ -386,7 +448,8 @@ def llenar_predio(hojainfo,mat_matriz,direccion,areaTerr):
             element.clear()
             time.sleep(.5)
             element.send_keys(opcion)
-
+            
+    wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
     checkbox_element = driver.find_element(By.CSS_SELECTOR, "#W0014vACT_PREDIOAREAREGISTRAL")      # BOTON DE QUE NO HAY AREA CATASTRAL
     if not checkbox_element.is_selected():
         checkbox_element.click()
@@ -400,7 +463,6 @@ def llenar_predio(hojainfo,mat_matriz,direccion,areaTerr):
     driver.find_element(By.CSS_SELECTOR, "#W0014GUARDAR").click()
     
     time.sleep(1)
-    wait = WebDriverWait(driver, 10)
     wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
 
 
@@ -601,7 +663,8 @@ def set_zero_intereados(list_identificacion, lis_cedulas,list_booleanos):
     wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
     time.sleep(1.5)
 
-                
+        
+
 def borrar_archivos(archivolio,cantidad):
 
     wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
@@ -700,6 +763,8 @@ datos = {
 
 datosjuridicos = {
     'Folio': None,
+    'Servidumbre': None,
+    'Escr. Serv': None,
     'Fecha registro': None,
     'Fecha documento': None,
     'Fuente adm.': None,
@@ -834,14 +899,14 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                     fila_juridico = 0
                     fila_cedulas = 1
                     juridico = False
-                    for filaj in hojajuridico.iter_rows(min_col=2, max_col=14, values_only=True):                     #revisar en que posicion esta el folio y la cantidad de interesados
+                    for filaj in hojajuridico.iter_rows(min_col=2, max_col=15, values_only=True):                     #revisar en que posicion esta el folio y la cantidad de interesados
                         # Verifica si la cadena de texto que estás buscando se encuentra en la celda
                         if juridico == False:
                             if str(folio_selec) in str(filaj[0]):
                                 juridico = True
                                 fila_juridico = fila_cedulas
                         
-                        elif juridico == True and filaj[0] != None or filaj[12] == None:
+                        elif filaj[5] != None or filaj[13] == None:
                             break
                         fila_cedulas += 1    
                     cedulas_revisar = fila_cedulas - fila_juridico
@@ -860,6 +925,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                 else:
                                     datosjuridicos[encabezado] = filaj[columna-1].value
                     if juridico != False:
+                        crear_servidumbre(datosjuridicos["Servidumbre"],datosjuridicos["Escr. Serv"])
                         wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
                         time.sleep(1.2)
                         matricula = driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel3")
@@ -1034,6 +1100,8 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     ced_encontrada = cedula_sinborrar
                                 else:
                                     ced_encontrada = ''
+                                if 'CARLOS' in datosjuridicos["Primer Nombre"]:
+                                    print ("hola")
                                 
                                 r_cedula,r_bool = crear_interes(datosjuridicos["Primer Nombre"],
                                                     datosjuridicos["Segundo Nombre"],

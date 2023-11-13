@@ -42,11 +42,11 @@ prefs = {
         'version': 2,
     }),
 }
-directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
-#directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/08-11-2023/Libro1.xlsx"
+#directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
+directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/10-11-2023/Libro1.xlsx"
 
-#DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
-DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
+DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
+#DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
 
 # Abre el archivo de Excel
 workbook = openpyxl.load_workbook(directorio)
