@@ -48,7 +48,7 @@ def dividir_por_delimitadores(delimitadores, texto):
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/10-11-2023/"
+carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/11-11-2023/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
@@ -71,7 +71,6 @@ anotacionesfuera = ["CANCELACION",
                     "ESTA ANOTACION NO TIENE VALIDEZ",
                     "PATRIMONIO DE FAMILIA",
                     "DECLARACION DE MEJORAS",
-                    "DONACION",
                     "ADJUDICACION EN SUCESION",
                     "COMPRAVENTA DERECHOS DE CUOTA"]
 
@@ -111,11 +110,12 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 # if folio == "33226":
                 #     print ("Hola")
                 tipo_servidumbre = ""
-                compraventa = "HOLA"            #Para agregar una anotacion solo cuando salga esta palabra
+                compraventa = 100000000            #Para agregar una anotacion solo cuando salga esta palabra
                 sianotacion = False
                 pag_encontrado = ""             #para guardar la página en la que se encontró la anotacion clave
                 entrarsiosi = False             #Para cuando quiero que guarde una anotacion si o si
                 resultado = False
+                n_anotacion = ''
                 # derechoscuota = False           #Para cuando hay derechos de cuota que toca cambiar 
                 # nombres_de = []
                 # cedulas_de = []
@@ -138,7 +138,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             count_nr1_a += 1
                         if re.search(r"servidumbre", line, re.IGNORECASE):
                             tipo_servidumbre_match = re.search(r'SERVIDUMBRE(.*?)\(LIMITACION AL DOMINIO\)', line)
-                            tipo_servidumbre = tipo_servidumbre_match.group(1).strip() if tipo_servidumbre_match.group(1).strip() else "SI"      
+                            tipo_servidumbre = tipo_servidumbre_match.group(1).strip() if tipo_servidumbre_match.group(1).strip() else "TRANSITO"      
                             n_escritura_servidumbre = n_escrotora              
                         elif tipo_servidumbre == "":
                             tipo_servidumbre = "NO"
