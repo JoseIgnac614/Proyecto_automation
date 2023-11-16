@@ -7,7 +7,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 # Carpeta que contiene las subcarpetas con los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/10-11-2023/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/Corrigiendo vur basico en blanco y 008/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"informacion_propiedades.csv"
@@ -40,7 +40,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 for page in pdf.pages:
                     text = page.extract_text()
                     # Extraer el número después de "Matrícula(s) Matriz:"
-                    matricula_match = re.search(r"Matrícula\(s\) Matriz:(.*?)([A-Za-z]|$)", text, re.DOTALL)
+                    #matricula_match = re.search(r"Matrícula\(s\) Matriz:(.*?)([A-Za-z]|$)", text, re.DOTALL)
+                    matricula_match = re.search(r"Matrícula\(s\) Matriz:.*?-(\d+)", text, re.DOTALL)
                     if matricula_match:
                         matriculas = matricula_match.group(1).strip().split() if matricula_match.group(1) else []
                         info_dict["Matrícula matriz"] = " ".join(matriculas) if matriculas else None
@@ -51,13 +52,15 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         matriculas_derivadas = matriculas_derivadas_match.group(1).strip().split() if matriculas_derivadas_match.group(1) else []
                         info_dict["Matrículas derivadas"] = " ".join(matriculas_derivadas) if matriculas_derivadas else None
                     
+                    # if folio == '51604':
+                    #     print ('hola')
                     #Extraer número después de "Area de terreno Hectareas:" o "AREA:"
-                    areas = ["Metros:", "AREA", "Centimietros:"]
+                    areas = ["area de","AREA","Metros:", "Centimietros:"]
                     for i in areas:
                         area_match = re.search(rf"({i})\s+(\d+(\.\d+)?)", text)
                         if archivo_pdf == "148-50746 B.pdf":
                             print (re.search(rf"({i})\s+(\d+(\.\d+)?)", text))
-                        if area_match:
+                        if area_match and str(area_match.group(2)) != "0":
                             etiqueta = area_match.group(1)
                             
                             if etiqueta == "Centimietros:":

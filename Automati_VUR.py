@@ -43,7 +43,7 @@ prefs = {
     }),
 }
 #directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
-directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/10-11-2023/Libro1.xlsx"
+directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/Corrigiendo vur basico en blanco y 008/Libro1.xlsx"
 
 DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
 #DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
@@ -69,6 +69,7 @@ valor_indice = '148'
 
 def descargar_pdf(driver, download_folder, file_name, nuevo_nombre, tiempo_maximo_espera=30):
     # Realiza la descarga
+    time.sleep(2)
     driver.execute_script("window.print();")
 
     # Inicia un temporizador
@@ -176,6 +177,7 @@ while sheet.cell(row=count, column=1).value is not None:
                 for combobox_id, opcion in informacion_combobox.items():
                     element = driver.find_element(By.CSS_SELECTOR, combobox_id)
                     element.send_keys(opcion)
+                    time.sleep(.5)
 
                 # Haz clic en el botón "Continuar" (ajusta el selector según tu página)
                 driver.find_element(By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(2) > div.panel-body > div.btn-group.pull-right > button").click()
@@ -266,5 +268,5 @@ while sheet.cell(row=count, column=1).value is not None:
         
     count += 1
 reproducir_audio(ruta_audio)
-time.sleep(2)
+time.sleep(30)
 

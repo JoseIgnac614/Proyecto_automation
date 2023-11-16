@@ -48,7 +48,7 @@ def dividir_por_delimitadores(delimitadores, texto):
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/11-11-2023/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/Corrigiendo vur basico en blanco y 008/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
@@ -72,7 +72,11 @@ anotacionesfuera = ["CANCELACION",
                     "PATRIMONIO DE FAMILIA",
                     "DECLARACION DE MEJORAS",
                     "ADJUDICACION EN SUCESION",
-                    "COMPRAVENTA DERECHOS DE CUOTA"]
+                    "PARTE RESTANTE",
+                    "COMPRAVENTA DERECHOS DE CUOTA",
+                    "% (MODO DE ADQUISICION)",
+                    "ENAJENAR"
+                    ]
 
 anotacionessiosi = ["COMPRAVENTA (MODO DE ADQUISICION)",
                     "LOTEO (OTRO)"]
@@ -116,6 +120,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 entrarsiosi = False             #Para cuando quiero que guarde una anotacion si o si
                 resultado = False
                 n_anotacion = ''
+                n_escritura_servidumbre = ""
                 # derechoscuota = False           #Para cuando hay derechos de cuota que toca cambiar 
                 # nombres_de = []
                 # cedulas_de = []
@@ -151,8 +156,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     if n_anotacion == compraventa:
                         encontrado_nohaymas = True
                         entrarsiosi = True
-                        
-                        
+                        encontrado_de = True
 
                 # Comprobar si "ANOTACION: Nro 1" se encontró y "ANOTACION" aparece más de una vez
                 resultado = count_anotacion_nro_1 == 1 and count_anotacion == 1
@@ -287,8 +291,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             ente = ente.replace("PRIMERO", "001")
                             ente = ente.replace("SEGUNDO", "002")
                         else:
-                            ente = ente.replace("JUZGADO", "JUZGADO 001")
-                            
+                            ente = ente.replace("JUZGADO", "JUZGADO 001")     
                     else:
                         ente = None
                     

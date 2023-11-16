@@ -3,24 +3,35 @@ from selenium.webdriver.common.by import By  # Importa el módulo By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from datetime import datetime
 import openpyxl
 import time
 import sys
 import io
-from bs4 import BeautifulSoup
 import re
 import ctypes
 import os
+import pygame
 
 
 
-# Evitar que el PC se suspenda
-ctypes.windll.kernel32.SetThreadExecutionState(0x80000002)
+llenarsolopredio =      1                   #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
+meterleservi =          True                #METERLE SERVIDUMBRE O NO???????????????    False para no, True para sí
+revisar_interesados =   True                #REVISAR INTERESADOSSS????????????? (Mirar cuales estan mal, eliminar, modificar, derechos, servidumbre)
+HibernarPC =            False               #HIBERNAR PC AL TEMRINAR????????
 
-llenarelresto = 1               #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
+# Abre el archivo Excel
+#carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
+carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/15-11-2023/"
+nombre_excel = 'Libro1.xlsx'
+
+
+
+
+
+
+
 nivel_de_zoom = 0.8
 # Configura las opciones del navegador para ajustar el nivel de zoom
 options = webdriver.ChromeOptions()
@@ -32,21 +43,24 @@ driver = webdriver.Chrome(options=options)
 driver.maximize_window()
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-# Obtener el contenido HTML de la página
-html = driver.page_source
-# Crear un objeto BeautifulSoup para analizar el HTML
-soup = BeautifulSoup(html, "html.parser")
+# Evitar que el PC se suspenda
+ctypes.windll.kernel32.SetThreadExecutionState(0x80000002)
 
 indice_folio = "148-"
-# Abre el archivo Excel
-#carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/10-11-2023/"
-nombre_excel = 'Libro2.xlsx'
+
 archivo_excel = openpyxl.load_workbook(carpeta_almacenamiento+nombre_excel)
 
 # Selecciona la hoja en la que deseas trabajar
 hoja = archivo_excel['informacion_propiedades']
 hojajuridico = archivo_excel['nombres_cedulas']
+
+def reproducir_audio(ruta_audio):
+    pygame.init()
+    pygame.mixer.init()
+    pygame.mixer.music.load(ruta_audio)
+    pygame.mixer.music.play()
+
+ruta_audio = "Alarmas/Audio1.mp3"  # Reemplaza con la ruta de tu archivo .mp3
 
 def search_element_click(edito):
     driver.execute_script("arguments[0].scrollIntoView();", edito)   
@@ -140,7 +154,6 @@ def crear_servidumbre(cadenaserv,cadena_escritura):
     
 
 def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
-#def crear_interes(pn,pa,genre):
     # Abre el archivo de Excel R1
     archivo_excel = openpyxl.load_workbook('R1.xlsx')
     # Selecciona la hoja en la que deseas buscar
@@ -159,17 +172,17 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
 
 
     persona = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#vSOLICITANTE_ID")))
-    if genre != "N":                #N: NIT, H: hombre, M: mujer
+    if genre != "N":                                        #N: NIT, H: hombre, M: mujer
         posicion_id = 0                                     #posicion del ciclo en el while
-        tipo_id_selecc = False                                 #En qué tipo de id fue encontrado el interesado
+        tipo_id_selecc = False                              #En qué tipo de id fue encontrado el interesado
         fix_ced = False
         fix_gen = False
         tipo_id_selecc_str = ""
         cedula_selecc = ""
         editar_selecc = ""
-        sn_sa_blank = False                 #Para saber cuando sn y sa no tienen nada y volver a pasar
+        sn_sa_blank = False                                 #Para saber cuando sn y sa no tienen nada y volver a pasar
         cambiosn_unavez = False
-        same_nombres = 0                    #cuantos nombres iguales se encontraron
+        same_nombres = 0                                    #cuantos nombres iguales se encontraron
         while True:
             if sn_sa_blank == True and posicion_id == 0 and cambiosn_unavez:
                 
@@ -391,6 +404,9 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
             driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTESAPELLIDO").send_keys(sa)
         
     else:
+        time.sleep(.5)
+        ay = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#LIMPIARCAMPOS")))
+        ay.click()
         time.sleep(1)
         cedula_cero = False
         persona.send_keys("PERSONA JURIDICA")
@@ -448,7 +464,19 @@ def llenar_predio(hojainfo,mat_matriz,direccion,areaTerr):
             element.clear()
             time.sleep(.5)
             element.send_keys(opcion)
-            
+    
+    
+    combodestino = driver.find_element(By.CSS_SELECTOR, "#W0014vDESTINACIONID")
+    
+    # Utilizando Select para manejar elementos select
+    select = Select(combodestino)
+    texto_actual = select.first_selected_option.text.strip()
+
+    if texto_actual == 'Seleccione...':
+        select.select_by_visible_text('LOTE URBANIZADO NO CONSTRUIDO')  # Seleccionar por texto visible
+    else:
+        print("Destino no cambiado")
+    
     wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
     checkbox_element = driver.find_element(By.CSS_SELECTOR, "#W0014vACT_PREDIOAREAREGISTRAL")      # BOTON DE QUE NO HAY AREA CATASTRAL
     if not checkbox_element.is_selected():
@@ -475,10 +503,18 @@ def crear_fuente(fuente,date_doc,ente,date_reg,n_fuente="SN"):
     # date_doc = date_doc.replace("-","/")
     # date_reg = date_reg.replace("-","/")
     # date_doc = datetime.strptime(date_doc,"%d/%m/%Y")
+    
+    # Supongamos que date_doc puede ser una cadena o un objeto datetime
+    if isinstance(date_doc, str):
+        date_doc = datetime.strptime(date_doc, "%d-%m-%Y")
+    # Ahora puedes realizar las operaciones de formato si date_doc es de tipo datetime
     date_doc = date_doc.strftime("%d/%m/%Y")
     
-    # date_reg = datetime.strptime(date_reg,"%d/%m/%Y")
+    if isinstance(date_reg, str):
+        date_reg = datetime.strptime(date_reg, "%d-%m-%Y")
+    # Ahora puedes realizar las operaciones de formato si date_doc es de tipo datetime
     date_reg = date_reg.strftime("%d/%m/%Y")
+    
     # Define un diccionario con los selectores CSS y sus valores
     campos = {
         "#W0030vACTFUENTEADMINTIPOID": fuente,
@@ -490,7 +526,11 @@ def crear_fuente(fuente,date_doc,ente,date_reg,n_fuente="SN"):
     # Llena los campos utilizando un bucle
     for selector, valor in campos.items():
         campo = driver.find_element(By.CSS_SELECTOR, selector)
+        if valor == n_fuente:
+            campo.clear()    
+            time.sleep(.5)
         campo.send_keys(valor)
+        time.sleep(.5)
 
     # driver.find_element(By.CSS_SELECTOR, "#W0030vACTFUEADMFECHDOC").send_keys(date_doc.strftime("%d/%m/%Y"))
     # driver.find_element(By.CSS_SELECTOR, "#W0030vACTFUEADMFECHREG").send_keys(date_reg.strftime("%d/%m/%Y"))
@@ -815,7 +855,7 @@ while True:
 
 fila_a_extraer = 2  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
 veces_repetir_folio = 5
-datos_titulos = datos.copy()
+datos_titulos = datos.copy() 
 datos_titulosjuri = datosjuridicos.copy()
 flag = 0
 
@@ -894,19 +934,19 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                     nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+ 2)
                     nueva_celda.value = "Es PH, no se modifica"
                 
-                if llenarelresto:
+                if llenarsolopredio:
                     folio_selec = datos['Folio']
                     fila_juridico = 0
                     fila_cedulas = 1
                     juridico = False
-                    for filaj in hojajuridico.iter_rows(min_col=2, max_col=15, values_only=True):                     #revisar en que posicion esta el folio y la cantidad de interesados
+                    for filaj in hojajuridico.iter_rows(min_col=2, max_col=columna_max_juridico-2, values_only=True):                     #revisar en que posicion esta el folio y la cantidad de interesados
                         # Verifica si la cadena de texto que estás buscando se encuentra en la celda
                         if juridico == False:
                             if str(folio_selec) in str(filaj[0]):
                                 juridico = True
                                 fila_juridico = fila_cedulas
                         
-                        elif filaj[5] != None or filaj[13] == None:
+                        elif filaj[5] != None or filaj[columna_max_juridico-4] == None:
                             break
                         fila_cedulas += 1    
                     cedulas_revisar = fila_cedulas - fila_juridico
@@ -925,7 +965,8 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                 else:
                                     datosjuridicos[encabezado] = filaj[columna-1].value
                     if juridico != False:
-                        crear_servidumbre(datosjuridicos["Servidumbre"],datosjuridicos["Escr. Serv"])
+                        if meterleservi == True:
+                            crear_servidumbre(datosjuridicos["Servidumbre"],datosjuridicos["Escr. Serv"])
                         wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
                         time.sleep(1.2)
                         matricula = driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel3")
@@ -986,7 +1027,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                             elemento1 = driver.find_elements(By.XPATH,"//*[contains(@id, 'span_W0038ACTDOCUMENTODESC_')]")
                             pdfs = len(elemento1)
                             # Obtener el texto de los elementos
-                            if archivopropio in elemento1[0].text and pdfs == 2:
+                            if pdfs == 2 and ((archivopropio + " B.pdf" == elemento1[0].text) or (archivopropio + " B.pdf" == elemento1[1].text)) and ((archivopropio + " J.pdf" == elemento1[0].text) or (archivopropio + " J.pdf" == elemento1[1].text)):
                                 print ("PDF subidos, ",datos["Folio"])
                             else:
                                 borrar_archivos(archivopropio,pdfs)
@@ -1028,260 +1069,261 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                         # Lista de claves correspondientes a los nombres y apellidos
                         nombres_apellidos_claves = ['Primer Nombre', 'Segundo Nombre', 'Primer Apellido', 'Segundo Apellido']
                         
-                        for i in range(cedulas_revisar):  
-                            # Itera a través de las claves y modifica los valores in situ
-                            if datosjuridicos["Género"] == 'N':
-                                priape = datosjuridicos["Primer Apellido"] 
-                                segape = datosjuridicos["Segundo Apellido"]
-                                
-                                if datosjuridicos["Primer Nombre"] == '':
-                                    datosjuridicos["Primer Apellido"] = segape
-                                else:
-                                    datosjuridicos["Primer Apellido"] = datosjuridicos["Primer Nombre"]
-                                    datosjuridicos["Segundo Nombre"] = segape
-                                datosjuridicos["Segundo Apellido"] = datosjuridicos["Segundo Nombre"]
-                                datosjuridicos["Primer Nombre"] = priape      
-                            
-                            for clave in nombres_apellidos_claves:
-                                if clave in ['Primer Nombre', 'Segundo Nombre'] and datosjuridicos[clave] != "":
-                                    datosjuridicos[clave] = datosjuridicos[clave] + " "
-                                elif clave in ['Primer Apellido', 'Segundo Apellido'] and datosjuridicos[clave] != "" and datosjuridicos['Segundo Apellido'] != "" and clave != 'Segundo Apellido':
-                                    datosjuridicos[clave] = datosjuridicos[clave] + " "
-                            
-                            #--------------------------------------------
-                            buscar_malos,cedula_sinborrar = buscar_inter_malo(driver, datosjuridicos, sininteres, unaveznomas,i,cedulas_revisar)
-                            #--------------------------------------------
-                            #buscar_malos[2] = True
-                            if buscar_malos[2]:
-                                unaveznomas = False
-                                firstced = False
-                                if pregunto_derechos == False:
-                                    driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel8").click()
-                                    try:
-                                        espere = WebDriverWait(driver, 2)
-                                        espere.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'img[id^="W0070vDELETE_"]')))
-                                        borrar_dere = driver.find_elements(By.CSS_SELECTOR,'img[id^="W0070vDELETE_"]')       #BORRAR DERECHOS
-                                        # Itera a través de los botones y haz clic en cada uno de ellos
-                                        for boton in borrar_dere:
-                                            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
-                                            boton.click()
-                                    except:
-                                        print ("Sin derechos que eliminar, ", datos["Folio"])
-                                    pregunto_derechos = True
+                        if revisar_interesados == True:
+                            for i in range(cedulas_revisar):  
+                                # Itera a través de las claves y modifica los valores in situ
+                                if datosjuridicos["Género"] == 'N':
+                                    priape = datosjuridicos["Primer Apellido"] 
+                                    segape = datosjuridicos["Segundo Apellido"]
                                     
-                                if sininteres:
-                                    panel = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#Tab_TAB1Containerpanel6')))
-                                    panel.click()
-                                    
-                                    time.sleep(1.5)
-                                    wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'img[id^="W0054vDELETE2_"]')))
-                                    time.sleep(.5)
-                                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
-                                    time.sleep(.5)
-                                    driver.find_element(By.CSS_SELECTOR, "#W0054GRIDPAGINATIONBARContainer_DVPaginationBar > div.PaginationBarCaption.dropdown > div > button").click()
-                                    driver.find_element(By.CSS_SELECTOR, "#W0054GRIDPAGINATIONBARContainer_DVPaginationBar > div.PaginationBarCaption.dropdown > div > ul > li:nth-child(6) > a > span").click()
-                                    
-                                    time.sleep(.5)
-                                    driver.execute_script("window.scrollTo(0,0)")
-                                    
-                                    borrar = driver.find_elements(By.CSS_SELECTOR,'img[id^="W0054vDELETE2_"]')         #BORRAR DOCUMENTOS
-                                    # Itera a través de los botones y haz clic en cada uno de ellos
-                                    for boton in borrar:
-                                        wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
-                                        wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'img[id^="W0054vDELETE2_"]')))
-                                        time.sleep(1.3)
-                                        lolo = driver.find_element(By.CSS_SELECTOR,'img[id^="W0054vDELETE2_"]')
-                                        time.sleep(1)
-                                        lolo.click()
-                                    sininteres = False
-                            
-                            if any(buscar_malos):
-                                if buscar_malos[1] and cedula_sinborrar != '0':
-                                    ced_encontrada = cedula_sinborrar
-                                else:
-                                    ced_encontrada = ''
-                                if 'CARLOS' in datosjuridicos["Primer Nombre"]:
-                                    print ("hola")
-                                
-                                r_cedula,r_bool = crear_interes(datosjuridicos["Primer Nombre"],
-                                                    datosjuridicos["Segundo Nombre"],
-                                                    datosjuridicos["Primer Apellido"],
-                                                    datosjuridicos["Segundo Apellido"],
-                                                    datosjuridicos["Género"],
-                                                    i+1,
-                                                    datosjuridicos["Cédulas"],
-                                                    ced_encontrada,
-                                                    )
-                                
-                                lista_cedulas.append(r_cedula)
-                                lista_bool.append(r_bool)
-                                lista_tipoid.append(datosjuridicos["Género"])
-                            else:
-                                lista_cedulas.append(cedula_sinborrar)
-                                lista_bool.append(False)
-                                lista_tipoid.append(datosjuridicos["Género"])
-                            
-                            # Extrae los datos de la fila y almacénalos en el diccionario
-                            fila_juridico+= 1
-                            filaj = hojajuridico[fila_juridico]#tonto
-                            for encabezado, columna in datos_titulosjuri.items():
-                                if columna:
-                                    if filaj[columna-1].value == None:
-                                        datosjuridicos[encabezado] = ""
+                                    if datosjuridicos["Primer Nombre"] == '':
+                                        datosjuridicos["Primer Apellido"] = segape
                                     else:
-                                        datosjuridicos[encabezado] = filaj[columna-1].value
-                            
-                        firstced = True
-                        i = 0
-                        if unaveznomas == False:
-                            for ced, ipid in zip(lista_cedulas,lista_tipoid):
-                                time.sleep(.5)
-                                papu = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#Tab_TAB1Containerpanel6')))
-                                papu.click()
-                                time.sleep(.5)
-                                #wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#span_W0014vACTPREDIOORIGENID")))
+                                        datosjuridicos["Primer Apellido"] = datosjuridicos["Primer Nombre"]
+                                        datosjuridicos["Segundo Nombre"] = segape
+                                    datosjuridicos["Segundo Apellido"] = datosjuridicos["Segundo Nombre"]
+                                    datosjuridicos["Primer Nombre"] = priape      
                                 
+                                for clave in nombres_apellidos_claves:
+                                    if clave in ['Primer Nombre', 'Segundo Nombre'] and datosjuridicos[clave] != "":
+                                        datosjuridicos[clave] = datosjuridicos[clave] + " "
+                                    elif clave in ['Primer Apellido', 'Segundo Apellido'] and datosjuridicos[clave] != "" and datosjuridicos['Segundo Apellido'] != "" and clave != 'Segundo Apellido':
+                                        datosjuridicos[clave] = datosjuridicos[clave] + " "
                                 
-                                wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#W0054CREARGRUPO')))
-                                while True:             #para asegurarse de que hay un grupo creado
-                                    try:
-                                        driver.find_element(By.CSS_SELECTOR, "#W0054GridgruposContainerRow_0001 > td:nth-child(4) > p")
-                                        time.sleep(.5)
-                                        grupo = driver.find_element(By.CSS_SELECTOR, "#W0054vSELECCIONAR_0001")      # escoger grupo
-                                        time.sleep(.5)
-                                        grupo.click()   
-                                        time.sleep(.5)
-                                        break
-                                    except:
-                                        driver.find_element(By.CSS_SELECTOR, "#W0054CREARGRUPO").click()
-                                        time.sleep(1.5)
-                                
-                                if ipid != "N":
-                                    driver.find_element(By.CSS_SELECTOR, "#W0054vTIPOIDENTIFICACION_ID").send_keys("Cedula Ciudadanía")
-                                else:
-                                    driver.find_element(By.CSS_SELECTOR, "#W0054vTIPOIDENTIFICACION_ID").send_keys("Numero de Identificación Tributaria")
-                                    
-                                if firstced:
-                                    checkpro = driver.find_element(By.CSS_SELECTOR, "#W0054vACTGRUPINTEREPROPRI")      # escoger grupo
-                                    checkpro.click()
+                                #--------------------------------------------
+                                buscar_malos,cedula_sinborrar = buscar_inter_malo(driver, datosjuridicos, sininteres, unaveznomas,i,cedulas_revisar)
+                                #--------------------------------------------
+                                #buscar_malos[2] = True
+                                if buscar_malos[2]:
+                                    unaveznomas = False
                                     firstced = False
-                                
-                                driver.find_element(By.CSS_SELECTOR, "#W0054vACTMIENINTENUMDOC").send_keys(ced)
-                                
-                                valor_porcentaje =100/cedulas_revisar
-                                valor_porcentajestr = str(valor_porcentaje)
-                                valor_porcentajestr = valor_porcentajestr.replace(".",",")
-                                
-                                participacion = driver.find_element(By.CSS_SELECTOR, "#W0054vACTGRUINTEREPARTIC")
-                                participacion.clear()
-                                participacion.send_keys(valor_porcentaje)
-                                
-                                driver.find_elements(By.CSS_SELECTOR, "ody > div.ui-pnotify.stack-topright > div")
-                                
-                                wait.until(lambda driver: len(driver.find_elements(By.CSS_SELECTOR, ".ui-pnotify.stack-topright[style*='display: block']")) <= 2)
-                                driver.find_element(By.CSS_SELECTOR, "#W0054ASOCIARINTERESADO").click()
-                                wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask"))) 
-                                wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "body > div.ui-pnotify.stack-topright > div > div.ui-pnotify-text"))) 
-                                time.sleep(1) 
-                                count = 0
-                                if i == cedulas_revisar - 1:
-                                    
-                                    while True:
+                                    if pregunto_derechos == False:
+                                        driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel8").click()
                                         try:
-                                            
-                                            notificacion = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "body > div.ui-pnotify.stack-topright > div > div.ui-pnotify-text")))  
-                                            notitext = notificacion.text
-                                            texto = "No es posible agregar el registro ya que la participación total entre los interesados sumaría más de 100..."
-                                            texto2 = "Los datos han sido agregados..."
-                                            if notitext == texto:
-                                                wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.ui-pnotify.stack-topright > div > div.ui-pnotify-text")))
-                                                raise Exception('ERROR: No se pudieron agregar todos los interesados')
-                                            else:
-                                                break
+                                            espere = WebDriverWait(driver, 2)
+                                            espere.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'img[id^="W0070vDELETE_"]')))
+                                            borrar_dere = driver.find_elements(By.CSS_SELECTOR,'img[id^="W0070vDELETE_"]')       #BORRAR DERECHOS
+                                            # Itera a través de los botones y haz clic en cada uno de ellos
+                                            for boton in borrar_dere:
+                                                wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
+                                                boton.click()
                                         except:
-                                            count +=1
-                                            if count >= 6:
-                                                print ("ALERTAR, ULTIMO INTERESADO NO PUDO SER INCLUIDO, ",datos["Folio"])
-                                                wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.ui-pnotify.stack-topright > div > div.ui-pnotify-text")))
-                                                break
-                                            valor_porcentaje = valor_porcentaje - .1
-                                            driver.find_element(By.CSS_SELECTOR, "#W0054vACTGRUINTEREPARTIC").send_keys(str(valor_porcentaje).replace(".",","))
-                                            driver.find_element(By.CSS_SELECTOR, "#W0054ASOCIARINTERESADO").click()
-                                            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask"))) 
-                                sumatoria = sumatoria + valor_porcentaje
-                            
-                        
-                        
-                        if not (95 < sumatoria < 100):
-                            print ("ALERTA: La suma de los interesados no está entre 95 y 100 % ---> ", sumatoria)
-                        
-                        falta_cedula = False
-                        if unaveznomas == True and buscar_malos[1]:
-                            falta_cedula = True
-                        
-                        if any(lista_bool) and unaveznomas == False or falta_cedula:
-                            set_zero_intereados(lista_tipoid,lista_cedulas,lista_bool)
-                        
-                        
-                        time.sleep(.4)
-                        driver.find_element(By.CSS_SELECTOR,'#Tab_TAB1Containerpanel7').click()
-                        time.sleep(.4)
-                        
-                        
-                        try:
-                            botoncito = driver.find_element(By.CSS_SELECTOR, "#W0062GRIDPAGINATIONBARContainer_DVPaginationBar > div.PaginationBarCaption.dropdown > div > button")
-                            botoncito.send_keys(Keys.PAGE_DOWN)
-                            time.sleep(.6)
-                            botoncito.click()
-                            driver.find_element(By.XPATH, '//*[@id="W0062GRIDPAGINATIONBARContainer_DVPaginationBar"]/div[2]/div/ul/li[6]/a/span').click()
-                            wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#W0062GridContainerRow_0001'))) 
-                            time.sleep(.6)
-                            driver.execute_script("window.scrollTo(0,0)")
-                        except:
-                            print ("Sin interesados registrados, ",datos["Folio"])
-                            sininteres = False
-                            primero = True  
-
-                        
-                        for i in range(cedulas_revisar):  
-                            #--------------------------------------------
-                            if i != 0:
-                                fila_juridico_inicial+= 1
-                            filaj = hojajuridico[fila_juridico_inicial]#tonto
-                            for encabezado, columna in datos_titulosjuri.items():
-                                if columna:
-                                    if filaj[columna-1].value == None:
-                                        datosjuridicos[encabezado] = ""
-                                    else:
-                                        datosjuridicos[encabezado] = filaj[columna-1].value
+                                            print ("Sin derechos que eliminar, ", datos["Folio"])
+                                        pregunto_derechos = True
                                         
-                            if datosjuridicos["Género"] == 'N':
-                                priape = datosjuridicos["Primer Apellido"] 
-                                segape = datosjuridicos["Segundo Apellido"]
+                                    if sininteres:
+                                        panel = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#Tab_TAB1Containerpanel6')))
+                                        panel.click()
+                                        
+                                        time.sleep(1.5)
+                                        wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'img[id^="W0054vDELETE2_"]')))
+                                        time.sleep(.5)
+                                        driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
+                                        time.sleep(.5)
+                                        driver.find_element(By.CSS_SELECTOR, "#W0054GRIDPAGINATIONBARContainer_DVPaginationBar > div.PaginationBarCaption.dropdown > div > button").click()
+                                        driver.find_element(By.CSS_SELECTOR, "#W0054GRIDPAGINATIONBARContainer_DVPaginationBar > div.PaginationBarCaption.dropdown > div > ul > li:nth-child(6) > a > span").click()
+                                        
+                                        time.sleep(.5)
+                                        driver.execute_script("window.scrollTo(0,0)")
+                                        
+                                        borrar = driver.find_elements(By.CSS_SELECTOR,'img[id^="W0054vDELETE2_"]')         #BORRAR DOCUMENTOS
+                                        # Itera a través de los botones y haz clic en cada uno de ellos
+                                        for boton in borrar:
+                                            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
+                                            wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'img[id^="W0054vDELETE2_"]')))
+                                            time.sleep(1.3)
+                                            lolo = driver.find_element(By.CSS_SELECTOR,'img[id^="W0054vDELETE2_"]')
+                                            time.sleep(1)
+                                            lolo.click()
+                                        sininteres = False
                                 
-                                if datosjuridicos["Primer Nombre"] == '':
-                                    datosjuridicos["Primer Apellido"] = segape
-                                else:
-                                    datosjuridicos["Primer Apellido"] = datosjuridicos["Primer Nombre"]
-                                    datosjuridicos["Segundo Nombre"] = segape
-                                datosjuridicos["Segundo Apellido"] = datosjuridicos["Segundo Nombre"]
-                                datosjuridicos["Primer Nombre"] = priape                                
-                                        
-                            for clave in nombres_apellidos_claves:
-                                if clave in ['Primer Nombre', 'Segundo Nombre'] and datosjuridicos[clave] != "":
-                                    datosjuridicos[clave] = datosjuridicos[clave] + " "
-                                elif clave in ['Primer Apellido', 'Segundo Apellido'] and datosjuridicos[clave] != "" and datosjuridicos['Segundo Apellido'] != "" and clave != 'Segundo Apellido':
-                                    datosjuridicos[clave] = datosjuridicos[clave] + " "
+                                if any(buscar_malos):
+                                    if buscar_malos[1] and cedula_sinborrar != '0':
+                                        ced_encontrada = cedula_sinborrar
+                                    else:
+                                        ced_encontrada = ''
+                                    # if 'CARLOS' in datosjuridicos["Primer Nombre"]:
+                                    #     print ("hola")
                                     
-                            buscar_malos,poop = buscar_inter_malo(driver, datosjuridicos, True, True,i,cedulas_revisar)
-                            if any(buscar_malos):
-                                raise Exception('ERROR: Última comprobación de interesados, fallida')
-                    derechos()
-                    wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
-                    driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel1").click()
-                    time.sleep(0.5)
-                    driver.find_element(By.CSS_SELECTOR, "#W0014CANCEL").click()
-                flag = 0
+                                    r_cedula,r_bool = crear_interes(datosjuridicos["Primer Nombre"],
+                                                        datosjuridicos["Segundo Nombre"],
+                                                        datosjuridicos["Primer Apellido"],
+                                                        datosjuridicos["Segundo Apellido"],
+                                                        datosjuridicos["Género"],
+                                                        i+1,
+                                                        datosjuridicos["Cédulas"],
+                                                        ced_encontrada,
+                                                        )
+                                    
+                                    lista_cedulas.append(r_cedula)
+                                    lista_bool.append(r_bool)
+                                    lista_tipoid.append(datosjuridicos["Género"])
+                                else:
+                                    lista_cedulas.append(cedula_sinborrar)
+                                    lista_bool.append(False)
+                                    lista_tipoid.append(datosjuridicos["Género"])
+                                
+                                # Extrae los datos de la fila y almacénalos en el diccionario
+                                fila_juridico+= 1
+                                filaj = hojajuridico[fila_juridico]#tonto
+                                for encabezado, columna in datos_titulosjuri.items():
+                                    if columna:
+                                        if filaj[columna-1].value == None:
+                                            datosjuridicos[encabezado] = ""
+                                        else:
+                                            datosjuridicos[encabezado] = filaj[columna-1].value
+                                
+                            firstced = True
+                            i = 0
+                            if unaveznomas == False:
+                                for ced, ipid in zip(lista_cedulas,lista_tipoid):
+                                    time.sleep(.5)
+                                    papu = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#Tab_TAB1Containerpanel6')))
+                                    papu.click()
+                                    time.sleep(.5)
+                                    #wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#span_W0014vACTPREDIOORIGENID")))
+                                    
+                                    
+                                    wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#W0054CREARGRUPO')))
+                                    while True:             #para asegurarse de que hay un grupo creado
+                                        try:
+                                            driver.find_element(By.CSS_SELECTOR, "#W0054GridgruposContainerRow_0001 > td:nth-child(4) > p")
+                                            time.sleep(.5)
+                                            grupo = driver.find_element(By.CSS_SELECTOR, "#W0054vSELECCIONAR_0001")      # escoger grupo
+                                            time.sleep(.5)
+                                            grupo.click()   
+                                            time.sleep(.5)
+                                            break
+                                        except:
+                                            driver.find_element(By.CSS_SELECTOR, "#W0054CREARGRUPO").click()
+                                            time.sleep(1.5)
+                                    
+                                    if ipid != "N":
+                                        driver.find_element(By.CSS_SELECTOR, "#W0054vTIPOIDENTIFICACION_ID").send_keys("Cedula Ciudadanía")
+                                    else:
+                                        driver.find_element(By.CSS_SELECTOR, "#W0054vTIPOIDENTIFICACION_ID").send_keys("Numero de Identificación Tributaria")
+                                        
+                                    if firstced:
+                                        checkpro = driver.find_element(By.CSS_SELECTOR, "#W0054vACTGRUPINTEREPROPRI")      # escoger grupo
+                                        checkpro.click()
+                                        firstced = False
+                                    
+                                    driver.find_element(By.CSS_SELECTOR, "#W0054vACTMIENINTENUMDOC").send_keys(ced)
+                                    
+                                    valor_porcentaje =100/cedulas_revisar
+                                    valor_porcentajestr = str(valor_porcentaje)
+                                    valor_porcentajestr = valor_porcentajestr.replace(".",",")
+                                    
+                                    participacion = driver.find_element(By.CSS_SELECTOR, "#W0054vACTGRUINTEREPARTIC")
+                                    participacion.clear()
+                                    participacion.send_keys(valor_porcentaje)
+                                    
+                                    driver.find_elements(By.CSS_SELECTOR, "ody > div.ui-pnotify.stack-topright > div")
+                                    
+                                    wait.until(lambda driver: len(driver.find_elements(By.CSS_SELECTOR, ".ui-pnotify.stack-topright[style*='display: block']")) <= 2)
+                                    driver.find_element(By.CSS_SELECTOR, "#W0054ASOCIARINTERESADO").click()
+                                    wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask"))) 
+                                    wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "body > div.ui-pnotify.stack-topright > div > div.ui-pnotify-text"))) 
+                                    time.sleep(1) 
+                                    count = 0
+                                    if i == cedulas_revisar - 1:
+                                        
+                                        while True:
+                                            try:
+                                                
+                                                notificacion = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "body > div.ui-pnotify.stack-topright > div > div.ui-pnotify-text")))  
+                                                notitext = notificacion.text
+                                                texto = "No es posible agregar el registro ya que la participación total entre los interesados sumaría más de 100..."
+                                                texto2 = "Los datos han sido agregados..."
+                                                if notitext == texto:
+                                                    wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.ui-pnotify.stack-topright > div > div.ui-pnotify-text")))
+                                                    raise Exception('ERROR: No se pudieron agregar todos los interesados')
+                                                else:
+                                                    break
+                                            except:
+                                                count +=1
+                                                if count >= 6:
+                                                    print ("ALERTAR, ULTIMO INTERESADO NO PUDO SER INCLUIDO, ",datos["Folio"])
+                                                    wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.ui-pnotify.stack-topright > div > div.ui-pnotify-text")))
+                                                    break
+                                                valor_porcentaje = valor_porcentaje - .1
+                                                driver.find_element(By.CSS_SELECTOR, "#W0054vACTGRUINTEREPARTIC").send_keys(str(valor_porcentaje).replace(".",","))
+                                                driver.find_element(By.CSS_SELECTOR, "#W0054ASOCIARINTERESADO").click()
+                                                wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask"))) 
+                                    sumatoria = sumatoria + valor_porcentaje
+                                
+                            
+                            
+                            if not (95 < sumatoria < 100):
+                                print ("ALERTA: La suma de los interesados no está entre 95 y 100 % ---> ", sumatoria)
+                            
+                            falta_cedula = False
+                            if unaveznomas == True and buscar_malos[1]:
+                                falta_cedula = True
+                            
+                            if any(lista_bool) and unaveznomas == False or falta_cedula:
+                                set_zero_intereados(lista_tipoid,lista_cedulas,lista_bool)
+                            
+                            
+                            time.sleep(.4)
+                            driver.find_element(By.CSS_SELECTOR,'#Tab_TAB1Containerpanel7').click()
+                            time.sleep(.4)
+                            
+                            
+                            try:
+                                botoncito = driver.find_element(By.CSS_SELECTOR, "#W0062GRIDPAGINATIONBARContainer_DVPaginationBar > div.PaginationBarCaption.dropdown > div > button")
+                                botoncito.send_keys(Keys.PAGE_DOWN)
+                                time.sleep(.6)
+                                botoncito.click()
+                                driver.find_element(By.XPATH, '//*[@id="W0062GRIDPAGINATIONBARContainer_DVPaginationBar"]/div[2]/div/ul/li[6]/a/span').click()
+                                wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#W0062GridContainerRow_0001'))) 
+                                time.sleep(.6)
+                                driver.execute_script("window.scrollTo(0,0)")
+                            except:
+                                print ("Sin interesados registrados, ",datos["Folio"])
+                                sininteres = False
+                                primero = True  
+
+                            
+                            for i in range(cedulas_revisar):  
+                                #--------------------------------------------
+                                if i != 0:
+                                    fila_juridico_inicial+= 1
+                                filaj = hojajuridico[fila_juridico_inicial]#tonto
+                                for encabezado, columna in datos_titulosjuri.items():
+                                    if columna:
+                                        if filaj[columna-1].value == None:
+                                            datosjuridicos[encabezado] = ""
+                                        else:
+                                            datosjuridicos[encabezado] = filaj[columna-1].value
+                                            
+                                if datosjuridicos["Género"] == 'N':
+                                    priape = datosjuridicos["Primer Apellido"] 
+                                    segape = datosjuridicos["Segundo Apellido"]
+                                    
+                                    if datosjuridicos["Primer Nombre"] == '':
+                                        datosjuridicos["Primer Apellido"] = segape
+                                    else:
+                                        datosjuridicos["Primer Apellido"] = datosjuridicos["Primer Nombre"]
+                                        datosjuridicos["Segundo Nombre"] = segape
+                                    datosjuridicos["Segundo Apellido"] = datosjuridicos["Segundo Nombre"]
+                                    datosjuridicos["Primer Nombre"] = priape                                
+                                            
+                                for clave in nombres_apellidos_claves:
+                                    if clave in ['Primer Nombre', 'Segundo Nombre'] and datosjuridicos[clave] != "":
+                                        datosjuridicos[clave] = datosjuridicos[clave] + " "
+                                    elif clave in ['Primer Apellido', 'Segundo Apellido'] and datosjuridicos[clave] != "" and datosjuridicos['Segundo Apellido'] != "" and clave != 'Segundo Apellido':
+                                        datosjuridicos[clave] = datosjuridicos[clave] + " "
+                                        
+                                buscar_malos,poop = buscar_inter_malo(driver, datosjuridicos, True, True,i,cedulas_revisar)
+                                if any(buscar_malos):
+                                    raise Exception('ERROR: Última comprobación de interesados, fallida')
+                        derechos()
+                        wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
+                        driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel1").click()
+                        time.sleep(0.5)
+                        driver.find_element(By.CSS_SELECTOR, "#W0014CANCEL").click()
+                    flag = 0
     
             errorzaso.value = None
             archivo_excel.save(carpeta_almacenamiento+"Libro1.xlsx")
@@ -1303,7 +1345,10 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
 # Restaurar la configuración de suspensión
 ctypes.windll.kernel32.SetThreadExecutionState(0x80000000)
 
-time.sleep(5)
+reproducir_audio(ruta_audio)
+time.sleep(30)
 
-# Suspender el PC (este comando es específico para Windows)
-os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+if HibernarPC == True:
+    time.sleep(5)
+    # Suspender el PC (este comando es específico para Windows)
+    os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
