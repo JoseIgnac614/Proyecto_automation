@@ -5,6 +5,15 @@ import re
 from datetime import datetime
 import pandas as pd
 
+# Carpeta que contiene los archivos PDF
+#carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/22-11-2023/"
+
+# Nombre del archivo CSV de salida
+archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
+# Cargar el archivo CSV
+df = pd.read_csv('Data_generos.csv', sep=';')
+
 def dividir_nombres(nombre):
     nombres = nombre.split()
     todojunto = ["","","",""]
@@ -36,46 +45,52 @@ def dividir_nombres(nombre):
     return todojunto[2], todojunto[3], todojunto[0], todojunto[1]
 
 def dividir_por_delimitadores(delimitadores, texto):
+    porc = ""
     for delimitador in delimitadores:
         if delimitador in texto:
             partes = texto.rsplit(delimitador, 1)
-            if "X" in partes[1]:
-                cedula = partes[1].split("X")[0].strip()
+            if "X" in delimitador:    
+                temporal = texto.split(" X")
+            else:
+                temporal = partes[1].split(" X")
+            
+            if "X" in texto:
+                if "X" not in delimitador:
+                    cedula = temporal[0].strip()
+                else:
+                    cedula = ""
+                #partes[1].split("X")[0].strip()
+                
+                if "%" in temporal[1] or "/" in temporal[1]:
+                    resultado= re.search(r"\b(.*?)[\s%]", temporal[1])
+                    if resultado:
+                        porc = resultado.group(1)
             else:
                 cedula = partes[1].strip()
-            return partes[0], cedula
-    return texto, ""
 
-# Carpeta que contiene los archivos PDF
-#carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/Corrigiendo vur basico en blanco y 008/"
-
-# Nombre del archivo CSV de salida
-archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
-# Cargar el archivo CSV
-df = pd.read_csv('Data_generos.csv', sep=';')
+            return partes[0], cedula,porc
+    return texto, "",""
 
 # Listas para almacenar los nombres y cédulas
-nombres = []
 primer_nombre  = []
 segundo_nombre = []
 primer_apellido = []
 segundo_apellido = []
-cedulas = []
 anotacionesfuera = ["CANCELACION",
                     "PARCIAL",
                     "EMBARGO",
                     "DEMANDA EN PROCESO",
                     "ACLARACION",
-                    "FALSA TRADICION",
+                    #"FALSA TRADICION",
                     "ESTA ANOTACION NO TIENE VALIDEZ",
                     "PATRIMONIO DE FAMILIA",
                     "DECLARACION DE MEJORAS",
-                    "ADJUDICACION EN SUCESION",
-                    "PARTE RESTANTE",
-                    "COMPRAVENTA DERECHOS DE CUOTA",
+                    #"ADJUDICACION EN SUCESION",
+                    #"PARTE RESTANTE",
+                    #"COMPRAVENTA DERECHOS DE CUOTA",
                     "% (MODO DE ADQUISICION)",
-                    "ENAJENAR"
+                    "ENAJENAR",
+                    "HIPOTECA"
                     ]
 
 anotacionessiosi = ["COMPRAVENTA (MODO DE ADQUISICION)",
@@ -110,6 +125,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 texto_lineas = []  # Almacena el texto de las líneas relevantes
                 nombres = []  # Lista para almacenar los nombres
                 cedulas = []  # Lista para almacenar las cédulas
+                porcentajes = []    #Lista para almacenar porcentajes
                 ph = "NO"
                 # if folio == "33226":
                 #     print ("Hola")
@@ -119,11 +135,14 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 pag_encontrado = ""             #para guardar la página en la que se encontró la anotacion clave
                 entrarsiosi = False             #Para cuando quiero que guarde una anotacion si o si
                 resultado = False
-                n_anotacion = ''
+                n_anotacion = 100000000
                 n_escritura_servidumbre = ""
                 # derechoscuota = False           #Para cuando hay derechos de cuota que toca cambiar 
                 # nombres_de = []
                 # cedulas_de = []
+                
+                # if folio == '15270':
+                #     print ("hola")
                 
                 for page in reversed(pdf.pages):
                     # Contar cuántas veces aparece "ANOTACION: Nro 1" y "ANOTACION" en todas las líneas
@@ -143,7 +162,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             count_nr1_a += 1
                         if re.search(r"servidumbre", line, re.IGNORECASE):
                             tipo_servidumbre_match = re.search(r'SERVIDUMBRE(.*?)\(LIMITACION AL DOMINIO\)', line)
-                            tipo_servidumbre = tipo_servidumbre_match.group(1).strip() if tipo_servidumbre_match.group(1).strip() else "TRANSITO"      
+                            tipo_servidumbre = tipo_servidumbre_match.group(1).strip() if tipo_servidumbre_match and tipo_servidumbre_match.group(1).strip() else "TRANSITO"
                             n_escritura_servidumbre = n_escrotora              
                         elif tipo_servidumbre == "":
                             tipo_servidumbre = "NO"
@@ -153,14 +172,16 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             compraventa = n_anotacion
                             sianotacion = True
                             pag_encontrado = page
-                    if n_anotacion == compraventa:
-                        encontrado_nohaymas = True
-                        entrarsiosi = True
-                        encontrado_de = True
+                if n_anotacion == compraventa:
+                    encontrado_nohaymas = True
+                    entrarsiosi = True
+                    encontrado_de = True
 
                 # Comprobar si "ANOTACION: Nro 1" se encontró y "ANOTACION" aparece más de una vez
                 resultado = count_anotacion_nro_1 == 1 and count_anotacion == 1
 
+                
+                
                 for page in reversed(pdf.pages):
                     if encontrado_x and encontrado_an:
                         encontrado_x = False
@@ -171,8 +192,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     #print (lines)
 
                     for line in reversed(lines):
-                        # if "ANTONIO MARIA" in line:
-                        #     print ("tons")
+                        if folio == "40566":
+                            print ("tons")
                         if "DE:" in line:           #para poder guardar un párrafo solo cuando tenga "DE:"
                             encontrado_de = True
                         elif any(keyword in line for keyword in anotacionesfuera) and ('SANEAMIENTO' not in line) and encontrado_nohaymas == False:      #CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION"
@@ -205,7 +226,9 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                             # TRATAMIENTO DE DATOS PARA LA CÉDULA Y NOMBRE
                             nombre = line[3:]
-                            nombre, cedula = dividir_por_delimitadores(delimitado_cedula, nombre)
+                            # if folio == '18938':
+                            #     print ("CHAO")
+                            nombre, cedula, porcens = dividir_por_delimitadores(delimitado_cedula, nombre)
                             if resultado: #sirve para cuando solo hay una anotación nro 1.
                                 contador += 1
                                 if count_nr1_a == contador:
@@ -217,6 +240,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                             nombres.append(nombre)
                             cedulas.append(cedula)
+                            porcentajes.append(porcens)
                             texto_lineas.insert(0, line)
                         elif encontrado_x and "ANOTACION" not in line:
                             texto_lineas.insert(0, line)
@@ -229,23 +253,24 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                 texto_lineas.insert(0, line)
                                 break
                             else:
-                                # for lineas in texto_lineas:
-                                #     if "COMPRAVENTA DERECHOS DE CUOTA" in lineas:
-                                #         derechoscuota = True
-                                #         nombres_de_a = nombres
-                                #     elif derechoscuota and "DE:" in lineas:
-                                #         nombre_de = lineas[3:]
-                                #         nombre_de, cedula_de = dividir_por_delimitadores(delimitado_cedula, nombre_de)
-                                #         nombres_de.append(nombre_de)
+                                # if "COMPRAVENTA DERECHOS DE CUOTA" in texto_lineas[1] or "COMPRAVENTA DERECHOS DE CUOTA" in texto_lineas[2]:
+                                #     nombres_de_a = nombres
+                                #     for lineas in texto_lineas:
+                                #         if "DE:" in lineas:
+                                #             nombre_de = lineas[3:]
+                                #             nombre_de, cedula_de = dividir_por_delimitadores(delimitado_cedula, nombre_de)
+                                #             nombres_de.append(nombre_de)
                                         
                                 encontrado_x = False
                                 nombres = []
                                 cedulas = []
+                                porcentajes = []
                                 texto_lineas = []
                         if "ANOTACION" in line:
                             encontrado_de = False
-                        # if folio == '32897':
+                        # if folio == '18623':
                         #     print ("hola")
+                        # print (folio)
                         if (" Nro 2 " in line) or (f" Nro {compraventa+1} " in line):
                             encontrado_nr2 = True
                             encontrado_nohaymas = True
@@ -274,7 +299,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     escritura = escritura_match.group(1) if escritura_match else None
 
                     # Buscar el primer número después del primer salto de línea
-                    n_escritura_match = re.search(r'(\w+) DEL', texto_celda)
+                    n_escritura_match = re.search(r' (.*?) DEL', texto_celda)
                     n_escritura = n_escritura_match.group(1) if n_escritura_match else None
                         
                     # Buscar la cadena de caracteres entre "00:00:00 " y " VALOR"
@@ -345,23 +370,26 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                 else:
                                     genero.append("No se encontró información de género")
                                     break
-                                
+                                                                                                                                                                                                                               
                             primer_nombre.append(pn)
                             segundo_nombre.append(sn)
                             primer_apellido.append(pa)
                             segundo_apellido.append(sa) 
                             i += 1
                         
+                        # if folio == "32446":
+                        #     print ("hola")
+                        
                         for page in reversed(pdf.pages):
                             # Contar cuántas veces aparece "ANOTACION: Nro 1" y "ANOTACION" en todas las líneas
                             lines = page.extract_text().splitlines()
                             for line in reversed(lines):
                                 for i in range(len(primer_nombre)):
-                                    if (primer_nombre[i] in line or segundo_nombre[i] in line) and (primer_apellido[i] in line or segundo_apellido[i] in line):
+                                    if (primer_nombre[i] in line or " "+segundo_nombre[i] in line) and (primer_apellido[i] in line or " "+segundo_apellido[i] in line):
                                         # Buscar cualquier número con más de dos dígitos en la línea
                                         matches = re.findall(r'\b\d{3,}\b', line)
                                         if matches and cedulas[i] == "":
-                                            cedulas[i] = matches[0]  # Asignar el primer número de más de dos dígitos como cédula
+                                            cedulas[i] = matches[0]  # Asignar el primer número de más de dos dígitos como cédula                                
                         
                 else:
                     ph = 'COLOCAR DATOS MANUALMENTE'
@@ -372,7 +400,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                     # Agregar encabezados si el archivo está vacío
                     if os.path.getsize(archivo_csv) == 0:
-                        csv_writer.writerow(["Nombre de archivo","Folio", "Servidumbre","Escr. Serv", "PH","Texto", "Fecha registro","Fecha documento","Fuente adm.","N. Fuente","Ente Em.","Cédulas", "Primer Nombre", "Segundo Nombre", "Primer Apellido", "Segundo Apellido","Género"])
+                        csv_writer.writerow(["Nombre de archivo","Folio", "Servidumbre","Escr. Serv", "PH","Texto", "Fecha registro","Fecha documento","Fuente adm.","N. Fuente","Ente Em.","Porcentajes","Cédulas", "Primer Nombre", "Segundo Nombre", "Primer Apellido", "Segundo Apellido","Género"])
                     
                     if primer_nombre == []:
                         print ("No hay nadaaaaaaa, archivo: ", archivo_pdf)
@@ -385,14 +413,15 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         count_pdfs += 1
                     while i < len(nombres):
                         if i == 0:
-                            csv_writer.writerow([archivo_pdf,folio, tipo_servidumbre,n_escritura_servidumbre, ph, texto_celda,date_registro,date_documento,escritura,n_escritura,ente, cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i],genero[i]])
+                            csv_writer.writerow([archivo_pdf,folio, tipo_servidumbre,n_escritura_servidumbre, ph, texto_celda,date_registro,date_documento,escritura,n_escritura,ente,porcentajes[i], cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i],genero[i]])
                         else:
-                            csv_writer.writerow(["", folio,"","","","", "","","","", "",cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i],genero[i]])
+                            csv_writer.writerow(["", folio,"","","","", "","","","", "",porcentajes[i],cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i],genero[i]])
                         i += 1
 
                 # Limpiar las listas para el próximo archivo PDF
                 nombres.clear()
                 cedulas.clear()
+                porcentajes.clear()
                 texto_lineas.clear()
 
 print(f"Se ha analizado y guardado la información en {archivo_csv} de {count_pdfs} PDFs")

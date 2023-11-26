@@ -23,7 +23,7 @@ HibernarPC =            False               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/15-11-2023/"
+carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/22-11-2023/"
 nombre_excel = 'Libro1.xlsx'
 
 
@@ -369,7 +369,7 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
             driver.find_element(By.CSS_SELECTOR, "#vACTGENEROID").send_keys(genre)
             time.sleep(2)
             driver.find_element(By.CSS_SELECTOR, "#vACTGRUPOETNICOID").send_keys("Ninguno")
-            time.sleep(1)
+            time.sleep(2)
             
             if sn_sa_blank:            
                 pa = sn
@@ -810,6 +810,7 @@ datosjuridicos = {
     'Fuente adm.': None,
     'N. Fuente': None,
     'Ente Em.': None,
+    'Porcentajes':None,
     'Cédulas': None,
     'Primer Nombre': None,
     'Segundo Nombre': None,
@@ -939,14 +940,14 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                     fila_juridico = 0
                     fila_cedulas = 1
                     juridico = False
-                    for filaj in hojajuridico.iter_rows(min_col=2, max_col=columna_max_juridico-2, values_only=True):                     #revisar en que posicion esta el folio y la cantidad de interesados
+                    for filaj in hojajuridico.iter_rows(min_col=1, max_col=columna_max_juridico, values_only=True):                     #revisar en que posicion esta el folio y la cantidad de interesados
                         # Verifica si la cadena de texto que estás buscando se encuentra en la celda
                         if juridico == False:
-                            if str(folio_selec) in str(filaj[0]):
+                            if str(folio_selec) in str(filaj[1]):
                                 juridico = True
                                 fila_juridico = fila_cedulas
                         
-                        elif filaj[5] != None or filaj[columna_max_juridico-4] == None:
+                        elif filaj[datos_titulosjuri["Servidumbre"]-1] != None or filaj[datos_titulosjuri["Primer Apellido"]-1] == None:
                             break
                         fila_cedulas += 1    
                     cedulas_revisar = fila_cedulas - fila_juridico
@@ -1040,6 +1041,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                         lista_cedulas = []
                         lista_bool = []
                         lista_tipoid = []
+                        lista_porcen = []
                         sumatoria = 0
                         firstced = True #no se usa
                         unaveznomas = True               
@@ -1158,10 +1160,13 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     lista_cedulas.append(r_cedula)
                                     lista_bool.append(r_bool)
                                     lista_tipoid.append(datosjuridicos["Género"])
+                                    lista_porcen.append(datosjuridicos["Porcentajes"])
+                                    
                                 else:
                                     lista_cedulas.append(cedula_sinborrar)
                                     lista_bool.append(False)
                                     lista_tipoid.append(datosjuridicos["Género"])
+                                    lista_porcen.append(datosjuridicos["Porcentajes"])
                                 
                                 # Extrae los datos de la fila y almacénalos en el diccionario
                                 fila_juridico+= 1
@@ -1176,7 +1181,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                             firstced = True
                             i = 0
                             if unaveznomas == False:
-                                for ced, ipid in zip(lista_cedulas,lista_tipoid):
+                                for ced, ipid, porc in zip(lista_cedulas,lista_tipoid,lista_porcen):
                                     time.sleep(.5)
                                     papu = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#Tab_TAB1Containerpanel6')))
                                     papu.click()
@@ -1210,9 +1215,13 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     
                                     driver.find_element(By.CSS_SELECTOR, "#W0054vACTMIENINTENUMDOC").send_keys(ced)
                                     
-                                    valor_porcentaje =100/cedulas_revisar
-                                    valor_porcentajestr = str(valor_porcentaje)
-                                    valor_porcentajestr = valor_porcentajestr.replace(".",",")
+                                    if porc != None or porc != "":
+                                        valor_porcentaje =100/cedulas_revisar
+                                    else:
+                                        valor_porcentaje = porc
+                                        
+                                    # valor_porcentajestr = str(valor_porcentaje)
+                                    # valor_porcentajestr = valor_porcentajestr.replace(".",",")
                                     
                                     participacion = driver.find_element(By.CSS_SELECTOR, "#W0054vACTGRUINTEREPARTIC")
                                     participacion.clear()

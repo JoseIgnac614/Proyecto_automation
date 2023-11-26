@@ -6,11 +6,22 @@ from selenium.webdriver.common.action_chains import ActionChains
 import json
 import time
 import os
-from selenium.common.exceptions import TimeoutException
 import openpyxl
 import sys
 import io
 import pygame
+
+
+#directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
+directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/22-11-2023/Libro2.xlsx"
+
+DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
+#DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
+
+
+
+
+
 
 def reproducir_audio(ruta_audio):
     pygame.init()
@@ -42,11 +53,7 @@ prefs = {
         'version': 2,
     }),
 }
-#directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
-directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/Corrigiendo vur basico en blanco y 008/Libro1.xlsx"
 
-DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
-#DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
 
 # Abre el archivo de Excel
 workbook = openpyxl.load_workbook(directorio)
@@ -160,6 +167,8 @@ while sheet.cell(row=count, column=1).value is not None:
         #       '#selectMunicipio': municipio,
                 '#circulo': circulo,
                 '#matricula': valor_excel,
+                # '#criterio':'Referencia Catastral',
+                # '#referenciaCatastral': valor_excel,
             }                  
 
             entrar = wait_n_refresh(10,"#selectDepartamento")
