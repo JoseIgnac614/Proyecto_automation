@@ -10,10 +10,13 @@ import openpyxl
 import sys
 import io
 import pygame
+import tkinter as tk
+import traceback
 
-
+nombrearchivo = "Libro1.xlsx"
 #directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
-directorio = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/22-11-2023/Libro2.xlsx"
+directorio2 = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/27-11-2023/"
+directorio = directorio2+nombrearchivo
 
 DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
 #DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
@@ -74,6 +77,53 @@ valor_indice = '148'
 # Agrega la preferencia para la ubicación de descarga.
 #prefs['download.default_directory'] = 'C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom'
 
+
+# Obtener los números del Excel en un vector
+numeros = [str(cell.value) for cell in sheet['A'] if cell.value]
+
+# Verificar y eliminar números si existen ambos archivos en el directorio
+for numero in numeros.copy():
+    nombre_archivo_b = f"148-{numero} B.pdf"
+    nombre_archivo_j = f"148-{numero} J.pdf"
+    
+    ruta_archivo_b = os.path.join(directorio2, nombre_archivo_b)
+    ruta_archivo_j = os.path.join(directorio2, nombre_archivo_j)
+    
+    if os.path.exists(ruta_archivo_b) and os.path.exists(ruta_archivo_j):
+        #print(f"Ambos archivos existen para el número {numero}. Se eliminará.")
+        numeros.remove(numero)
+
+
+def mostrar_ventana():
+    ventana_emergente = tk.Toplevel(root_window)
+    ventana_emergente.title("Mensaje")
+    
+    label = tk.Label(ventana_emergente, text="¿Ya completó el captcha?")
+    label.pack()
+    
+    button = tk.Button(ventana_emergente, text="Aceptar", command=ventana_emergente.destroy)
+    button.pack()
+    
+    # Obtiene las dimensiones de la pantalla
+    screen_width = root_window.winfo_screenwidth()
+    screen_height = root_window.winfo_screenheight()
+    
+    # Calcula la posición para centrar la ventana emergente
+    x = (screen_width - ventana_emergente.winfo_reqwidth()) // 2
+    y = (screen_height - ventana_emergente.winfo_reqheight()) // 2
+    
+    # Establece la posición de la ventana emergente
+    ventana_emergente.geometry("+{}+{}".format(x, y))
+    
+    ventana_emergente.transient(root_window)  # Establece la ventana emergente como dependiente de la ventana principal
+    ventana_emergente.wait_window(ventana_emergente)  # Espera a que se cierre la ventana emergente
+
+
+root_window = tk.Tk()
+root_window.title("Ventana Principal")
+
+
+    
 def descargar_pdf(driver, download_folder, file_name, nuevo_nombre, tiempo_maximo_espera=30):
     # Realiza la descarga
     time.sleep(2)
@@ -87,7 +137,10 @@ def descargar_pdf(driver, download_folder, file_name, nuevo_nombre, tiempo_maxim
             # El archivo ha sido encontrado, cambia el nombre si es necesario
             if os.path.isfile(os.path.join(download_folder, nuevo_nombre)):
                 os.remove(os.path.join(download_folder, nuevo_nombre))  # Elimina el archivo con el nuevo nombre
-            os.rename(os.path.join(download_folder, file_name), os.path.join(download_folder, nuevo_nombre))
+            if os.path.isfile(os.path.join(directorio2, nuevo_nombre)):
+                os.remove(os.path.join(directorio2, nuevo_nombre))  # Elimina el archivo con el nuevo nombre
+            os.rename(os.path.join(download_folder, file_name), os.path.join(directorio2, nuevo_nombre))
+            
             print("Archivo encontrado y renombrado.")
             return True
         else:
@@ -115,102 +168,42 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 # Navega a la página web deseada
 driver.get("https://www.vur.gov.co/siteminderagent/forms_es-ES/loginsnr.fcc?TYPE=100663297&REALMOID=06-6c1363d6-46ce-4693-bea4-501339aa6485&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=-SM-fqc7JfbsitKYA98880nx7GzOWf3PHSx%2frBwpwn0hvw7giR0TRx5Ii32r0m4mIlPP&TARGET=-SM-HTTP%3a%2f%2fwww%2evur%2egov%2eco%2fportal%2fpages%2fvur%2finicio%2ejsf%3furl%3d-%2Fportal-%2FPantallasVUR-%2F-%23-%2F-%3Ftipo-%3DdatosBasicosTierras")
 
+informacion_combobox = {
+    '#username': 'LILIANAP.LOPEZ',
+    '#password': 'P890980L',
+}
+
+
+
+for combobox_id, opcion in informacion_combobox.items():
+    element = driver.find_element(By.CSS_SELECTOR, combobox_id)
+    element.send_keys(opcion)
+
+mostrar_ventana()
+        
+entrar = driver.find_element(By.CSS_SELECTOR, "#container-login > div > form > div > div.input-submit > input")
+entrar.click()
+
+
 count = 1
 
 while sheet.cell(row=count, column=1).value is not None:
-    contar_malos = 0
-    while True:
-        try:
-            driver.get("https://www.vur.gov.co/siteminderagent/forms_es-ES/loginsnr.fcc?TYPE=100663297&REALMOID=06-6c1363d6-46ce-4693-bea4-501339aa6485&GUID=&SMAUTHREASON=0&METHOD=GET&SMAGENTNAME=-SM-fqc7JfbsitKYA98880nx7GzOWf3PHSx%2frBwpwn0hvw7giR0TRx5Ii32r0m4mIlPP&TARGET=-SM-HTTP%3a%2f%2fwww%2evur%2egov%2eco%2fportal%2fpages%2fvur%2finicio%2ejsf%3furl%3d-%2Fportal-%2FPantallasVUR-%2F-%23-%2F-%3Ftipo-%3DdatosBasicosTierras")
-            # Lee el valor de la celda
-            valor_excel = sheet['A'+str(count)].value  # Reemplaza 'A1' por la celda que deseas usar
-            valor_cadena = valor_indice + "-" + str(valor_excel)
-            informacion_combobox = {
-                '#header1 > table:nth-child(4) > tbody > tr > td > form > input[type=text]:nth-child(2)': 'LILIANAP.LOPEZ',
-                '#header1 > table:nth-child(4) > tbody > tr > td > form > input[type=password]:nth-child(6)': 'P890980L',
-            }
-
-            for combobox_id, opcion in informacion_combobox.items():
-                element = driver.find_element(By.CSS_SELECTOR, combobox_id)
-                element.send_keys(opcion)
-                    
-            entrar = driver.find_element(By.CSS_SELECTOR, "#ext-gen40")
-            entrar.click()
-
-            # # Esperar 5 segundos
-            time.sleep(1)
-            driver.switch_to.default_content()   
-            entrar = wait_n_refresh(15,"#menu-navegacion > li.dropdown > a")
-            entrar.click()
-
-            time.sleep(2)
-            # Localiza el elemento sobre el cual deseas pasar el mouse
-            elemento = driver.find_element(By.CSS_SELECTOR, "#menu-navegacion > li.dropdown.open > ul > li > a")
-
-            # Crea una instancia de ActionChains
-            actions = ActionChains(driver)
-
-            # Mueve el mouse sobre el elemento
-            actions.move_to_element(elemento).perform()
-
-            time.sleep(0.5)
-            entrar = driver.find_element(By.CSS_SELECTOR, "#menu-navegacion > li.dropdown.open > ul > li > ul > li:nth-child(1) > a")
-            entrar.click()
-
-            #time.sleep(5)
-
-            iframe = driver.find_element(By.XPATH, "//iframe[@id='page']")
-            driver.switch_to.frame(iframe)
-
-            informacion_combobox = {
-                '#selectDepartamento': departameto,
-        #       '#selectMunicipio': municipio,
-                '#circulo': circulo,
-                '#matricula': valor_excel,
-                # '#criterio':'Referencia Catastral',
-                # '#referenciaCatastral': valor_excel,
-            }                  
-
-            entrar = wait_n_refresh(10,"#selectDepartamento")
-
-            flag = 0                    #Para avisar que el folio no está en el VU
-            start_time = time.time()
-            break
-        except:
-            driver.refresh()
-    
-    while True:
-        try:
-            if flag != 2:
-                # Llena la información en los combobox en la página actual
-                for combobox_id, opcion in informacion_combobox.items():
-                    element = driver.find_element(By.CSS_SELECTOR, combobox_id)
-                    element.send_keys(opcion)
-                    time.sleep(.5)
-
-                # Haz clic en el botón "Continuar" (ajusta el selector según tu página)
-                driver.find_element(By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(2) > div.panel-body > div.btn-group.pull-right > button").click()
-                time.sleep(1.5)    
-                #Espera hasta que aparezca el elemento en la siguiente página
-                wait = WebDriverWait(driver, timeout)
+    #hola = sheet.cell(row=count, column=1).value
+    if str(sheet.cell(row=count, column=1).value) in numeros:
+        contar_malos = 0
+        while True:
+            try:
+                # Lee el valor de la celda
+                valor_excel = sheet['A'+str(count)].value  # Reemplaza 'A1' por la celda que deseas usar
+                valor_cadena = valor_indice + "-" + str(valor_excel)
                 
-                matricula = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(3) > div.panel-body > table > tbody > tr > td:nth-child(1) > a")))
-                matricula.click()
-                #Si el elemento se encuentra, el bucle se detiene
-                
-                wait = WebDriverWait(driver, timeout)
-                matricula = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div.panel.panel-primary.datos-basicos[ng-show="pantallaDatosBasicos"]:not(.ng-hide)'))
-                )
-
-                # Abre el diálogo de impresión del navegador
-                descargar_pdf(driver,DirDescargasVUR,"-VUR.pdf",valor_cadena+" B.pdf")
-                # Encuentra todos los elementos que tienen un atributo "id"
-                driver.switch_to.default_content()
-
-                    
-                entrar = driver.find_element(By.CSS_SELECTOR, "#menu-navegacion > li.dropdown > a")
+                # # Esperar 5 segundos
+                time.sleep(1)
+                driver.switch_to.default_content()   
+                entrar = wait_n_refresh(15,"#menu-navegacion > li.dropdown > a")
                 entrar.click()
-                time.sleep(0.5)
+
+                time.sleep(2)
                 # Localiza el elemento sobre el cual deseas pasar el mouse
                 elemento = driver.find_element(By.CSS_SELECTOR, "#menu-navegacion > li.dropdown.open > ul > li > a")
 
@@ -221,61 +214,158 @@ while sheet.cell(row=count, column=1).value is not None:
                 actions.move_to_element(elemento).perform()
 
                 time.sleep(0.5)
-                entrar = driver.find_element(By.CSS_SELECTOR, "#menu-navegacion > li.dropdown.open > ul > li > ul > li:nth-child(2) > a")
+                entrar = driver.find_element(By.CSS_SELECTOR, "#menu-navegacion > li.dropdown.open > ul > li > ul > li:nth-child(1) > a")
                 entrar.click()
+
+                #time.sleep(5)
 
                 iframe = driver.find_element(By.XPATH, "//iframe[@id='page']")
                 driver.switch_to.frame(iframe)
-                flag = 2
-            time.sleep(2)
-            WebDriverWait(driver, timeout).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, 'div.panel.panel-primary[ng-show="pantallaDatosJuridicos"]:not(.ng-hide)'))
-            )
 
-            # Esperar hasta que se encuentre un elemento <li> que contiene "Lista"
-            elemento = WebDriverWait(driver, timeout).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(11) > div > div.tabbable.ng-isolate-scope > ul > li:nth-child(2)"))
-            )
-            elemento.click()
-            descargar_pdf(driver,DirDescargasVUR,"-VUR.pdf",valor_cadena+" J.pdf")
+                informacion_combobox = {
+                    '#selectDepartamento': departameto,
+            #       '#selectMunicipio': municipio,
+                    '#circulo': circulo,
+                    '#matricula': valor_excel,
+                    # '#criterio':'Referencia Catastral',
+                    # '#referenciaCatastral': valor_excel,
+                }                  
+
+                entrar = wait_n_refresh(10,"#selectDepartamento")
+
+                flag = 0                    #Para avisar que el folio no está en el VU
+                start_time = time.time()
+                break
+            except:
+                driver.refresh()
+        
+        while True:
+            try:
+                if flag != 2:
+                    # Llena la información en los combobox en la página actual
+                    for combobox_id, opcion in informacion_combobox.items():
+                        element = driver.find_element(By.CSS_SELECTOR, combobox_id)
+                        element.send_keys(opcion)
+                        time.sleep(.5)
+
+                    # Haz clic en el botón "Continuar" (ajusta el selector según tu página)
+                    driver.find_element(By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(2) > div.panel-body > div.btn-group.pull-right > button").click()
+                    time.sleep(1.5)    
+                    #Espera hasta que aparezca el elemento en la siguiente página
+                    wait = WebDriverWait(driver, timeout)
+                    
+                    matricula = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(3) > div.panel-body > table > tbody > tr > td:nth-child(1) > a")))
+                    matricula.click()
+                    #Si el elemento se encuentra, el bucle se detiene
+                    
+                    wait = WebDriverWait(driver, timeout)
+                    matricula = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div.panel.panel-primary.datos-basicos[ng-show="pantallaDatosBasicos"]:not(.ng-hide)'))
+                    )
+
+                    # Abre el diálogo de impresión del navegador
+                    descargar_pdf(driver,DirDescargasVUR,"-VUR.pdf",valor_cadena+" B.pdf")
+                    # Encuentra todos los elementos que tienen un atributo "id"
+                    driver.switch_to.default_content()
+
+                        
+                    entrar = driver.find_element(By.CSS_SELECTOR, "#menu-navegacion > li.dropdown > a")
+                    entrar.click()
+                    time.sleep(0.5)
+                    # Localiza el elemento sobre el cual deseas pasar el mouse
+                    elemento = driver.find_element(By.CSS_SELECTOR, "#menu-navegacion > li.dropdown.open > ul > li > a")
+
+                    # Crea una instancia de ActionChains
+                    actions = ActionChains(driver)
+
+                    # Mueve el mouse sobre el elemento
+                    actions.move_to_element(elemento).perform()
+
+                    time.sleep(0.5)
+                    entrar = driver.find_element(By.CSS_SELECTOR, "#menu-navegacion > li.dropdown.open > ul > li > ul > li:nth-child(2) > a")
+                    entrar.click()
+
+                    iframe = driver.find_element(By.XPATH, "//iframe[@id='page']")
+                    driver.switch_to.frame(iframe)
+                    flag = 2
+                time.sleep(2)
+                WebDriverWait(driver, timeout).until(
+                    EC.visibility_of_element_located((By.CSS_SELECTOR, 'div.panel.panel-primary[ng-show="pantallaDatosJuridicos"]:not(.ng-hide)'))
+                )
+
+                # Esperar hasta que se encuentre un elemento <li> que contiene "Lista"
+                elemento = WebDriverWait(driver, timeout).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(11) > div > div.tabbable.ng-isolate-scope > ul > li:nth-child(2)"))
+                )
+                elemento.click()
+                descargar_pdf(driver,DirDescargasVUR,"-VUR.pdf",valor_cadena+" J.pdf")
+                
+                
+                edito = driver.find_element(By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div.panel.panel-primary.panel-botones > div > div > div > button:nth-child(3)")
+                
+                driver.execute_script("arguments[0].scrollIntoView();", edito)   
+                time.sleep(.5)     
+        
+                encontrado = False
+                conta = 0
+                vayase = False
+                while not encontrado:
+                    try:
+                        # Intenta encontrar el elemento
+                        edito.click()
+                        encontrado = True
+                    except:
+                        
+                        # Si no se encuentra el elemento, desplaza el scroll hacia arriba
+                        driver.execute_script("window.scrollBy(0, -100);")
+                        # Espera un momento para que la página se cargue y se actualice
+                        time.sleep(.7)
+                        if conta > 8:
+                            vayase = True
+                            break
+                        conta += 1
+                if vayase == True:
+                    raise Exception("ERROR: Se dañó en el ciclo del while de interesados") 
+                
+                driver.switch_to.default_content()
+                
+                break
+
+            except Exception as e:
+                print(f"Se produjo un error: {e}")
+                # Si el elemento no se encuentra, recarga la página
+                mensaje_error = traceback.format_exc()
+                
+                driver.refresh()
+                time.sleep(3)
+                iframe = driver.find_element(By.XPATH, "//iframe[@id='page']")
+                driver.switch_to.frame(iframe)
+                
+                elapsed_time = time.time() - start_time                 #Por si el folio no está en el vur
+                if elapsed_time >= 10:
+                    if flag == 2:
+                        start_time = time.time()
+                        flag = 1
+                    else:
+                        flag = 1
+                        contar_malos += 1
+                        if contar_malos > 8:
+                            
+                            break
+                    
+                
+        if flag == 1:
+            #escribir algo en el excel
+            #print ("No está el folio en el VUR")
+            sheet['B'+str(count)] = "No está el folio en el VUR"
+            workbook.save(directorio)
+            flag = 0
             
             driver.switch_to.default_content()
-            driver.find_element(By.CSS_SELECTOR, "#menu-navegacion > li:nth-child(5) > a").click()
-            break
-
-        except Exception as e:
-            print(f"Se produjo un error: {e}")
-            # Si el elemento no se encuentra, recarga la página
-            driver.refresh()
-            time.sleep(3)
-            iframe = driver.find_element(By.XPATH, "//iframe[@id='page']")
-            driver.switch_to.frame(iframe)
+            wait = WebDriverWait(driver, timeout)
+            #matricula = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#menu-navegacion > li:nth-child(5) > a"))).click()
             
-            elapsed_time = time.time() - start_time                 #Por si el folio no está en el vur
-            if elapsed_time >= 10:
-                if flag == 2:
-                    start_time = time.time()
-                    flag = 1
-                else:
-                    flag = 1
-                    contar_malos += 1
-                    if contar_malos > 5:
-                        
-                        break
-                
-            
-    if flag == 1:
-        #escribir algo en el excel
-        #print ("No está el folio en el VUR")
-        sheet['B'+str(count)] = "No está el folio en el VUR"
-        workbook.save(directorio)
-        flag = 0
-        
-        driver.switch_to.default_content()
-        wait = WebDriverWait(driver, timeout)
-        matricula = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#menu-navegacion > li:nth-child(5) > a"))).click()
-        
     count += 1
+#root_window.mainloop()
 reproducir_audio(ruta_audio)
 time.sleep(30)
 

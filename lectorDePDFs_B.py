@@ -7,7 +7,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 # Carpeta que contiene las subcarpetas con los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/22-11-2023/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/27-11-2023-2/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"informacion_propiedades.csv"
@@ -29,7 +29,8 @@ conversiones = {
     "HAS": 10000,  # 1 Ha = 10,000 m2
     "HECT": 10000,
     "M2": 1,        # 1 m2 = 1 m2
-    "MTS": 1
+    "MTS": 1,
+    "MTS2": 1
 }
 
 
@@ -52,19 +53,30 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             # Contar cuántas veces aparece "ANOTACION: Nro 1" y "ANOTACION" en todas las líneas
                             lines = pagej.extract_text().splitlines()
                             for line in reversed(lines):
-                                if "PARTE RESTANTE" in line:
+                                if "PARTE RESTANTE" in line or "AREA" in line or "�REA" in line:
                                     bool_area = True
-                                    # Buscar las unidades de medida y sus valores numéricos
-                                    matches = re.findall(r'\b(\d{1,3}(?:[\.,]\d{3})*(?:\.\d+)?|\d+)\s*(\w+)', line)
+                                    if "PARTE RESTANTE" in line:
+                                        cadena = line.split("PARTE RESTANTE")[1].strip()
+                                        cadena = cadena.split("ARTICULO")[0].strip()
+                                    elif "AREA" in line:
+                                        cadena = line.split("AREA")[1].strip()
+                                    else:
+                                        cadena = line.split("�REA")[1].strip()
+                                        
+                                    # Buscar las unidades de medida y sus valores numéricos                                                                                                            
+                                    matches = re.findall(r'\b(\d{1,3}(?:[\.,]\d{3})*(?:[\.,]\d+)?|\d+)[\s,]*(\w+)?', cadena)
                                     for match in matches:
                                         valor, unidad = match
                                         #valor = valor.replace(".", "").replace(",", "")  # Eliminar puntos y comas como separadores de miles
 
                                         # Determinar si el número debe ser tratado como decimal o número de miles
-                                        if '.' in valor:
-                                            parte_decimal = valor.split('.')[1]
-                                            if len(parte_decimal) == 3:
-                                                valor = valor.replace('.', '')  # Tratar como número de miles
+                                        if ',' in valor:
+                                            valor = valor.replace(',', '.')  # Reemplazar coma por punto para tratar como número decimal
+                                        elif '.' in valor and len(valor.split('.')[-1]) == 3:
+                                            valor = valor.replace('.', '')  # Tratar como número de miles si tiene tres dígitos después del punto
+
+                                        if unidad is None or unidad not in conversiones:
+                                            unidad = "M2"  # Asignar M2 como unidad por defecto si no se encuentra o no está definida
 
                                         if unidad in conversiones:
                                             valor_m2 = float(valor) * conversiones[unidad]
@@ -73,10 +85,15 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                             else:
                                                 total_m2 += valor_m2
                                                 break  # Romper el bucle si ya se encontró el valor total en m2
+                                            if unidad == "M2" or unidad == "MTS2":
+                                                break
                                     
-                                            
-                                    info_dict["Área de Terreno"] = str(total_m2)
-                                    break
+                                    if total_m2 != None: 
+                                        info_dict["Área de Terreno"] = str(total_m2)
+                                        break
+                                    else:
+                                        bool_area = False
+                                    
                             else:
                                 continue  # Este `continue` es ejecutado solo si el bucle `for line in reversed(lines)` se completa sin encontrar "PARTE RESTANTE"
                             break  # Sale del bucle `for pagej in reversed(pdfj.pages)` (el bucle medio)
@@ -102,9 +119,10 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     #Extraer número después de "Area de terreno Hectareas:" o "AREA:"
                         
                     if not bool_area:
-                        areas = ["area de","AREA","Metros:", "Centimietros:"]
+                        areas = ["area","�REA","Metros:", "Centimietros:"]
                         for i in areas:
-                            area_match = re.search(rf"({i})\s+(\d+(\.\d+)?)", text)
+                            textarea = text.split("Salvedades")[0].strip()
+                            area_match = re.search(rf"({i})\D*(\d+(\.\d+)?) ", textarea, re.IGNORECASE)
                             # if archivo_pdf == "148-50746 B.pdf":
                             #     print (re.search(rf"({i})\s+(\d+(\.\d+)?)", text))
                             if area_match and str(area_match.group(2)) != "0":

@@ -7,7 +7,7 @@ import pandas as pd
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/22-11-2023/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/27-11-2023-2/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
@@ -64,7 +64,10 @@ def dividir_por_delimitadores(delimitadores, texto):
                 if "%" in temporal[1] or "/" in temporal[1]:
                     resultado= re.search(r"\b(.*?)[\s%]", temporal[1])
                     if resultado:
-                        porc = resultado.group(1)
+                        if "/" in temporal[1]:
+                            porc = "=100*"+resultado.group(1)
+                        else:
+                            porc = resultado.group(1)
             else:
                 cedula = partes[1].strip()
 
@@ -78,6 +81,8 @@ primer_apellido = []
 segundo_apellido = []
 anotacionesfuera = ["CANCELACION",
                     "PARCIAL",
+                    "PARCILA",
+                    " PA ",
                     "EMBARGO",
                     "DEMANDA EN PROCESO",
                     "ACLARACION",
@@ -94,7 +99,9 @@ anotacionesfuera = ["CANCELACION",
                     ]
 
 anotacionessiosi = ["COMPRAVENTA (MODO DE ADQUISICION)",
-                    "LOTEO (OTRO)"]
+                    "COMPRAVENTA MODALIDAD: (NOVIS)",
+                    "LOTEO (OTRO)",
+                    "CONSTITUCION DE URBANIZACION"]
 
 delimitado_cedula = [" CC "," TI ", " NIT. ","(ME X","(MENOR) X"," (MENOR) X", " X", " # "]
 
@@ -130,18 +137,22 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 # if folio == "33226":
                 #     print ("Hola")
                 tipo_servidumbre = ""
-                compraventa = 100000000            #Para agregar una anotacion solo cuando salga esta palabra
+                compraventa = -10000000            #Para agregar una anotacion solo cuando salga esta palabra
                 sianotacion = False
                 pag_encontrado = ""             #para guardar la página en la que se encontró la anotacion clave
                 entrarsiosi = False             #Para cuando quiero que guarde una anotacion si o si
                 resultado = False
-                n_anotacion = 100000000
+                n_anotacion = -100000000
+                
+                
+                
+                
                 n_escritura_servidumbre = ""
                 # derechoscuota = False           #Para cuando hay derechos de cuota que toca cambiar 
                 # nombres_de = []
                 # cedulas_de = []
                 
-                # if folio == '15270':
+                # if folio == '21639':
                 #     print ("hola")
                 
                 for page in reversed(pdf.pages):
@@ -157,7 +168,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                 count_anotacion_nro_1 = True
                             # Extraer el número después de "ANOTACION:"
                             anotacion_match = re.search(r'ANOTACION: Nro (\d+)', line)
-                            n_anotacion = int(anotacion_match.group(1)) if anotacion_match else None
+                            if n_anotacion < int(anotacion_match.group(1)) if anotacion_match else None:
+                                n_anotacion = int(anotacion_match.group(1))
                         if count_anotacion_nro_1 and "A:" in line or count_nr1_a == 0 and "DE:" in line:
                             count_nr1_a += 1
                         if re.search(r"servidumbre", line, re.IGNORECASE):
@@ -169,7 +181,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         if re.search(r"horizontal", line, re.IGNORECASE):
                             ph = "SI"
                         if any(keyword in line for keyword in anotacionessiosi) and (pag_encontrado == page or sianotacion == False):
-                            compraventa = n_anotacion
+                            compraventa = int(anotacion_match.group(1))
                             sianotacion = True
                             pag_encontrado = page
                 if n_anotacion == compraventa:
@@ -192,8 +204,11 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     #print (lines)
 
                     for line in reversed(lines):
-                        if folio == "40566":
-                            print ("tons")
+                        if "https" in line or "Consultas VUR" in line:  # Ejemplo de condición
+                            continue  # Si el número es par, pasa al siguiente número sin ejecutar el código restante
+                        
+                        # if folio == "40566":
+                        #     print ("tons")
                         if "DE:" in line:           #para poder guardar un párrafo solo cuando tenga "DE:"
                             encontrado_de = True
                         elif any(keyword in line for keyword in anotacionesfuera) and ('SANEAMIENTO' not in line) and encontrado_nohaymas == False:      #CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION"
@@ -299,8 +314,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     escritura = escritura_match.group(1) if escritura_match else None
 
                     # Buscar el primer número después del primer salto de línea
-                    n_escritura_match = re.search(r' (.*?) DEL', texto_celda)
-                    n_escritura = n_escritura_match.group(1) if n_escritura_match else None
+                    n_escritura_match = re.search(r'(\w+) (.*?) DEL', texto_celda)
+                    n_escritura = n_escritura_match.group(2) if n_escritura_match else None
                         
                     # Buscar la cadena de caracteres entre "00:00:00 " y " VALOR"
                     ente_match = re.search(r':(\d+) (.*?) VALOR', texto_celda)

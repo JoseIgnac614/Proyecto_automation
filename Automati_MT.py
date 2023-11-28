@@ -23,7 +23,7 @@ HibernarPC =            False               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/22-11-2023/"
+carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/27-11-2023-2/"
 nombre_excel = 'Libro1.xlsx'
 
 
@@ -465,6 +465,8 @@ def llenar_predio(hojainfo,mat_matriz,direccion,areaTerr):
             time.sleep(.5)
             element.send_keys(opcion)
     
+    cambioestado = driver.find_element(By.CSS_SELECTOR, "#W0014vACTPREDIOESTADO")
+    cambioestado.send_keys("Realizado")
     
     combodestino = driver.find_element(By.CSS_SELECTOR, "#W0014vDESTINACIONID")
     
@@ -571,7 +573,7 @@ def subir_documentos(ruta,cadena_folio):
     wait = WebDriverWait(driver, 10)
     wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.ui-pnotify.stack-topright")))
  
-def derechos():
+def derechos(texto):
     wait = WebDriverWait(driver, 10)
     pato = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#Tab_TAB1Containerpanel8")))
     pato.click()
@@ -583,6 +585,8 @@ def derechos():
         combo = driver.find_element(By.CSS_SELECTOR, selector)
         select = Select(combo)
         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, f"{selector} option:nth-child({1 + 1})")))
+        if selector == "#W0070vACTDERECHOTIPOID" and "COMPRAVENTA DERECHOS" in texto:
+            combo.send_keys("POSESION")
         time.sleep(3)
         select.select_by_index(1)
 
@@ -816,7 +820,8 @@ datosjuridicos = {
     'Segundo Nombre': None,
     'Primer Apellido': None,
     'Segundo Apellido': None,
-    'Género': None
+    'Género': None,
+    'Texto': None
 }
 # Obtén los valores de los encabezados en la primera fila
 for columna in hoja.iter_cols(min_row=1, max_row=1):
@@ -859,6 +864,7 @@ veces_repetir_folio = 5
 datos_titulos = datos.copy() 
 datos_titulosjuri = datosjuridicos.copy()
 flag = 0
+flagaprob = False
 
 while hoja.cell(row=fila_a_extraer, column=1).value is not None:
     error = hoja.cell(row=fila_a_extraer, column=columna_max+ 1)
@@ -909,12 +915,20 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                         break
                     except:
                         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#vACTPREDIOESTADO")))
-                        driver.find_element(By.CSS_SELECTOR, "#vACTPREDIOESTADO").send_keys("Realizado")
-                        if flag == 1:
+                        if flag == 0:
+                            driver.find_element(By.CSS_SELECTOR, "#vACTPREDIOESTADO").send_keys("Realizado")
+                            flag = 2
+                        elif flag == 2:                            
+                            driver.find_element(By.CSS_SELECTOR, "#vACTPREDIOESTADO").send_keys("Aprobado")
+                            flagaprob = True
+                            flag = 1
+                        elif flag == 1:
+                            flagaprob = False
                             nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+3)
                             nueva_celda.value = "Unfounded"
                             break
-                        flag = 1
+                    
+                            
 
             if flag != 1:
                 time.sleep(5)
@@ -952,6 +966,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                         fila_cedulas += 1    
                     cedulas_revisar = fila_cedulas - fila_juridico
                     fila_juridico_inicial = fila_juridico
+                    
                     if juridico == False:
                         aviso_vur = hoja.cell(row=fila_a_extraer, column=columna_max+ 4)
                         aviso_vur.value = "NO HUBO COINCIDENCIA FOLIO BASICO CON EL JURIDICO"
@@ -965,9 +980,8 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     datosjuridicos[encabezado] = ""
                                 else:
                                     datosjuridicos[encabezado] = filaj[columna-1].value
-                    if juridico != False:
-                        if meterleservi == True:
-                            crear_servidumbre(datosjuridicos["Servidumbre"],datosjuridicos["Escr. Serv"])
+                    
+                    if flagaprob or juridico:
                         wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
                         time.sleep(1.2)
                         matricula = driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel3")
@@ -993,6 +1007,11 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                             else:
                                 nueva_celda.value = elemento_fuente.text
                         #a = 1/0
+                        
+                    if juridico != False and not flagaprob: 
+                        if meterleservi == True:
+                            crear_servidumbre(datosjuridicos["Servidumbre"],datosjuridicos["Escr. Serv"])
+                        
                         if mod_fuente:
 
                             driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel3").click()
@@ -1215,10 +1234,10 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     
                                     driver.find_element(By.CSS_SELECTOR, "#W0054vACTMIENINTENUMDOC").send_keys(ced)
                                     
-                                    if porc != None or porc != "":
-                                        valor_porcentaje =100/cedulas_revisar
-                                    else:
+                                    if porc != None and porc != "":
                                         valor_porcentaje = porc
+                                    else:                                        
+                                        valor_porcentaje =100/cedulas_revisar
                                         
                                     # valor_porcentajestr = str(valor_porcentaje)
                                     # valor_porcentajestr = valor_porcentajestr.replace(".",",")
@@ -1255,11 +1274,11 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                                     print ("ALERTAR, ULTIMO INTERESADO NO PUDO SER INCLUIDO, ",datos["Folio"])
                                                     wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.ui-pnotify.stack-topright > div > div.ui-pnotify-text")))
                                                     break
-                                                valor_porcentaje = valor_porcentaje - .1
+                                                valor_porcentaje = float(valor_porcentaje) - .1
                                                 driver.find_element(By.CSS_SELECTOR, "#W0054vACTGRUINTEREPARTIC").send_keys(str(valor_porcentaje).replace(".",","))
                                                 driver.find_element(By.CSS_SELECTOR, "#W0054ASOCIARINTERESADO").click()
                                                 wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask"))) 
-                                    sumatoria = sumatoria + valor_porcentaje
+                                    sumatoria = sumatoria + float(valor_porcentaje)
                                 
                             
                             
@@ -1327,7 +1346,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                 buscar_malos,poop = buscar_inter_malo(driver, datosjuridicos, True, True,i,cedulas_revisar)
                                 if any(buscar_malos):
                                     raise Exception('ERROR: Última comprobación de interesados, fallida')
-                        derechos()
+                        derechos(datosjuridicos["Texto"])
                         wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
                         driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel1").click()
                         time.sleep(0.5)
