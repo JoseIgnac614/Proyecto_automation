@@ -13,17 +13,19 @@ import re
 import ctypes
 import os
 import pygame
+import traceback
 
 
 
 llenarsolopredio =      1                   #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
-meterleservi =          True                #METERLE SERVIDUMBRE O NO???????????????    False para no, True para sí
+pestañapredio  =        False                #DECIDE SI LLENAR PESTAÑA PREDIO O NO    
+meterleservi =          False                #METERLE SERVIDUMBRE O NO???????????????    False para no, True para sí
 revisar_interesados =   True                #REVISAR INTERESADOSSS????????????? (Mirar cuales estan mal, eliminar, modificar, derechos, servidumbre)
-HibernarPC =            False               #HIBERNAR PC AL TEMRINAR????????
+HibernarPC =            True               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/27-11-2023-2/"
+carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/27-11-2023/"
 nombre_excel = 'Libro1.xlsx'
 
 
@@ -585,7 +587,7 @@ def derechos(texto):
         combo = driver.find_element(By.CSS_SELECTOR, selector)
         select = Select(combo)
         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, f"{selector} option:nth-child({1 + 1})")))
-        if selector == "#W0070vACTDERECHOTIPOID" and "COMPRAVENTA DERECHOS" in texto:
+        if selector == "#W0070vACTDERECHOTIPOID" and ("COMPRAVENTA DERE" in texto or "FALSA TRADICION" in texto):
             combo.send_keys("POSESION")
         time.sleep(3)
         select.select_by_index(1)
@@ -943,17 +945,19 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                 cadena_busqueda = "Unidad_Predial"
 
                 # Comprueba si la cadena de búsqueda está presente en el texto.
-                if cadena_busqueda not in texto_elemento:
-                    llenar_predio(hoja,datos['Matrícula matriz'],datos['Dirección Corregida'],datos['Área de Terreno'])
-                else:
-                    nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+ 2)
-                    nueva_celda.value = "Es PH, no se modifica"
+                if pestañapredio:
+                    if cadena_busqueda not in texto_elemento:
+                        llenar_predio(hoja,datos['Matrícula matriz'],datos['Dirección Corregida'],datos['Área de Terreno'])
+                    else:
+                        nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+ 2)
+                        nueva_celda.value = "Es PH, no se modifica"
                 
                 if llenarsolopredio:
                     folio_selec = datos['Folio']
                     fila_juridico = 0
                     fila_cedulas = 1
                     juridico = False
+                    datofoliosave = ''
                     for filaj in hojajuridico.iter_rows(min_col=1, max_col=columna_max_juridico, values_only=True):                     #revisar en que posicion esta el folio y la cantidad de interesados
                         # Verifica si la cadena de texto que estás buscando se encuentra en la celda
                         if juridico == False:
@@ -961,9 +965,11 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                 juridico = True
                                 fila_juridico = fila_cedulas
                         
-                        elif filaj[datos_titulosjuri["Servidumbre"]-1] != None or filaj[datos_titulosjuri["Primer Apellido"]-1] == None:
+                        elif (filaj[datos_titulosjuri["Folio"]-1] != datofoliosave) or (filaj[datos_titulosjuri["Primer Apellido"]-1] == '' or filaj[datos_titulosjuri["Primer Apellido"]-1] == None):
                             break
-                        fila_cedulas += 1    
+                        fila_cedulas += 1 
+                        datofoliosave = filaj[datos_titulosjuri["Folio"]-1]
+                        
                     cedulas_revisar = fila_cedulas - fila_juridico
                     fila_juridico_inicial = fila_juridico
                     
@@ -978,6 +984,8 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                             if columna:
                                 if filaj[columna-1].value == None:
                                     datosjuridicos[encabezado] = ""
+                                elif isinstance(filaj[columna-1].value, str):
+                                    datosjuridicos[encabezado] = filaj[columna-1].value.strip()
                                 else:
                                     datosjuridicos[encabezado] = filaj[columna-1].value
                     
@@ -1194,6 +1202,8 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     if columna:
                                         if filaj[columna-1].value == None:
                                             datosjuridicos[encabezado] = ""
+                                        elif isinstance(filaj[columna-1].value, str):
+                                            datosjuridicos[encabezado] = filaj[columna-1].value.strip()
                                         else:
                                             datosjuridicos[encabezado] = filaj[columna-1].value
                                 
@@ -1235,6 +1245,9 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     driver.find_element(By.CSS_SELECTOR, "#W0054vACTMIENINTENUMDOC").send_keys(ced)
                                     
                                     if porc != None and porc != "":
+                                        if "=" in str(porc):
+                                            porc = porc.replace('=','')
+                                            porc = eval(porc)
                                         valor_porcentaje = porc
                                     else:                                        
                                         valor_porcentaje =100/cedulas_revisar
@@ -1322,6 +1335,8 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     if columna:
                                         if filaj[columna-1].value == None:
                                             datosjuridicos[encabezado] = ""
+                                        elif isinstance(filaj[columna-1].value, str):
+                                            datosjuridicos[encabezado] = filaj[columna-1].value.strip()
                                         else:
                                             datosjuridicos[encabezado] = filaj[columna-1].value
                                             
@@ -1358,6 +1373,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
             break
     
         except Exception as e:
+            mensaje_error = traceback.format_exc()
             a += 1
             print(f"Fila: {a}, IteracionSe produjo un error: {e}")
             flag = 0

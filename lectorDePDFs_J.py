@@ -7,7 +7,7 @@ import pandas as pd
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/27-11-2023-2/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/CONSULTA REVISION/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
@@ -92,16 +92,19 @@ anotacionesfuera = ["CANCELACION",
                     "DECLARACION DE MEJORAS",
                     #"ADJUDICACION EN SUCESION",
                     #"PARTE RESTANTE",
-                    #"COMPRAVENTA DERECHOS DE CUOTA",
+                    "COMPRAVENTA DERECHOS DE CUOTA",
                     "% (MODO DE ADQUISICION)",
                     "ENAJENAR",
-                    "HIPOTECA"
+                    "HIPOTECA"                    
                     ]
 
 anotacionessiosi = ["COMPRAVENTA (MODO DE ADQUISICION)",
                     "COMPRAVENTA MODALIDAD: (NOVIS)",
                     "LOTEO (OTRO)",
-                    "CONSTITUCION DE URBANIZACION"]
+                    "CONSTITUCION DE URBANIZACION",
+                    "COMPRAVENTA POSESION"
+                    "(FALSA"
+                    ]
 
 delimitado_cedula = [" CC "," TI ", " NIT. ","(ME X","(MENOR) X"," (MENOR) X", " X", " # "]
 
@@ -220,6 +223,9 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         
                         if ("A:" in line or "DE:" in line) and encontrado_nr2:
                             encontrado_nr2 = encontrado_de = True
+                        elif not ("A:" in line or "DE:" in line) and encontrado_nr2 and encontrado_de:
+                            encontrado_nr2 = False
+
                             
                             # Verificar si existe "ANOTACION: Nro " seguido de los números cancelados
                         for numero in numeros_cancelados:
@@ -236,7 +242,6 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                         if (" X" in line and "A:" in line) or (resultado and "A:" in line) or anot1 or encontrado_nr2 or (entrarsiosi and "A:" in line):# and not encontrado_x:
                             encontrado_x = True
-                            encontrado_nr2 = False
                             #print (line)
 
                             # TRATAMIENTO DE DATOS PARA LA CÉDULA Y NOMBRE
@@ -244,6 +249,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             # if folio == '18938':
                             #     print ("CHAO")
                             nombre, cedula, porcens = dividir_por_delimitadores(delimitado_cedula, nombre)
+                            if " I" in cedula:
+                                cedula = cedula.split(" I")[0]
                             if resultado: #sirve para cuando solo hay una anotación nro 1.
                                 contador += 1
                                 if count_nr1_a == contador:

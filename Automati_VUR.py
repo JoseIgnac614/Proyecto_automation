@@ -15,7 +15,7 @@ import traceback
 
 nombrearchivo = "Libro1.xlsx"
 #directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
-directorio2 = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/27-11-2023/"
+directorio2 = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/CONSULTA REVISION/"
 directorio = directorio2+nombrearchivo
 
 DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
@@ -67,7 +67,7 @@ sheet = workbook['Hoja1']
 
 
 departameto= 'CORDOBA'
-#municipio = 'SAHAGUN'           #
+municipio = 'SAHAGUN'           #
 circulo = 'ORIP - SAHAGUN'             #ORIP - 
 valor_indice = '148'
 #valor_excel va a ser el A1 del excel
@@ -349,7 +349,30 @@ while sheet.cell(row=count, column=1).value is not None:
                         flag = 1
                         contar_malos += 1
                         if contar_malos > 8:
-                            
+                            edito = driver.find_element(By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div.panel.panel-primary.panel-botones > div > div > div > button:nth-child(3)")                
+                            driver.execute_script("arguments[0].scrollIntoView();", edito)   
+                            time.sleep(.5)     
+                    
+                            encontrado = False
+                            conta = 0
+                            vayase = False
+                            while not encontrado:
+                                try:
+                                    # Intenta encontrar el elemento
+                                    edito.click()
+                                    encontrado = True
+                                except:
+                                    
+                                    # Si no se encuentra el elemento, desplaza el scroll hacia arriba
+                                    driver.execute_script("window.scrollBy(0, -100);")
+                                    # Espera un momento para que la página se cargue y se actualice
+                                    time.sleep(.7)
+                                    if conta > 8:
+                                        vayase = True
+                                        break
+                                    conta += 1
+                            if vayase == True:
+                                raise Exception("ERROR: Se dañó en el ciclo del while de interesados") 
                             break
                     
                 
