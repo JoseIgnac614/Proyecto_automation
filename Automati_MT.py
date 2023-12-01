@@ -25,7 +25,7 @@ HibernarPC =            True               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/27-11-2023/"
+carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/30-11-3023/"
 nombre_excel = 'Libro1.xlsx'
 
 

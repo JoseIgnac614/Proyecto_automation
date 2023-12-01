@@ -12,13 +12,14 @@ import io
 import pygame
 import tkinter as tk
 import traceback
+from selenium.common.exceptions import NoAlertPresentException
 
 nombrearchivo = "Libro1.xlsx"
 #directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
-directorio2 = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/CONSULTA REVISION/"
+directorio2 = "C:/Users/nacho/Downloads/Pruebas_autom/30-11-3023/"
 directorio = directorio2+nombrearchivo
 
-DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
+DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
 #DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
 
 
@@ -223,8 +224,9 @@ while sheet.cell(row=count, column=1).value is not None:
                 driver.switch_to.frame(iframe)
 
                 informacion_combobox = {
-                    '#selectDepartamento': departameto,
-            #       '#selectMunicipio': municipio,
+                   '#selectDepartamento': departameto,
+                   '#selectDepartamento': 'TODOS',
+                  '#selectMunicipio': municipio,
                     '#circulo': circulo,
                     '#matricula': valor_excel,
                     # '#criterio':'Referencia Catastral',
@@ -248,17 +250,47 @@ while sheet.cell(row=count, column=1).value is not None:
                         element.send_keys(opcion)
                         time.sleep(.5)
 
+                    wait = WebDriverWait(driver, timeout)
                     # Haz clic en el botón "Continuar" (ajusta el selector según tu página)
-                    driver.find_element(By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(2) > div.panel-body > div.btn-group.pull-right > button").click()
+                    matricula = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > div.wrapper.ng-scope > div > div:nth-child(2) > div.panel-body > div.btn-group.pull-right > button')))
+                    matricula.click()
                     time.sleep(1.5)    
                     #Espera hasta que aparezca el elemento en la siguiente página
-                    wait = WebDriverWait(driver, timeout)
                     
-                    matricula = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(3) > div.panel-body > table > tbody > tr > td:nth-child(1) > a")))
+
+                    # Esperar hasta que el elemento tenga display: none
+                    wait2 = WebDriverWait(driver, 30)                    
+                    
+                    try:
+                        wait2.until(driver.execute_script("return window.getComputedStyle(document.querySelector('#esperaModal')).getPropertyValue('display')") == 'none')
+                        #print("El elemento con id='esperaModal' tiene display: none")
+
+                    except:
+                        try:
+                            alert = driver.switch_to.alert
+                            #print("Alerta encontrada:", alert.text)
+                            alert.accept()  # Para aceptar la alerta
+                        except NoAlertPresentException:
+                            print("No se encontraron alertas")
+                    
+                    
+                    matricula = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(3) > div.panel-body > table > tbody > tr > td:nth-child(1) > a")))
                     matricula.click()
                     #Si el elemento se encuentra, el bucle se detiene
                     
-                    wait = WebDriverWait(driver, timeout)
+                    try:
+                        wait2.until(driver.execute_script("return window.getComputedStyle(document.querySelector('#esperaModal')).getPropertyValue('display')") == 'none')
+                        #print("El elemento con id='esperaModal' tiene display: none")
+
+                    except:
+                        try:
+                            alert = driver.switch_to.alert
+                            #print("Alerta encontrada:", alert.text)
+                            alert.accept()  # Para aceptar la alerta
+                        except NoAlertPresentException:
+                            print("No se encontraron alertas")
+                    
+                    
                     matricula = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div.panel.panel-primary.datos-basicos[ng-show="pantallaDatosBasicos"]:not(.ng-hide)'))
                     )
 
@@ -331,14 +363,19 @@ while sheet.cell(row=count, column=1).value is not None:
                 break
 
             except Exception as e:
-                print(f"Se produjo un error: {e}")
+                #print(f"Se produjo un error: {e}")
                 # Si el elemento no se encuentra, recarga la página
                 mensaje_error = traceback.format_exc()
-                
+                try:
+                    driver.switch_to.alert.accept()
+                except:
+                    print("")
+                #esperaModal
                 driver.refresh()
                 time.sleep(3)
                 iframe = driver.find_element(By.XPATH, "//iframe[@id='page']")
                 driver.switch_to.frame(iframe)
+                
                 
                 elapsed_time = time.time() - start_time                 #Por si el folio no está en el vur
                 if elapsed_time >= 10:
@@ -349,7 +386,11 @@ while sheet.cell(row=count, column=1).value is not None:
                         flag = 1
                         contar_malos += 1
                         if contar_malos > 8:
+                            time.sleep(1)
                             edito = driver.find_element(By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div.panel.panel-primary.panel-botones > div > div > div > button:nth-child(3)")                
+                            time.sleep(1)
+                            edito2 = driver.find_element(By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(2) > div.panel-body > div.btn-group.pull-right > button")                
+                            
                             driver.execute_script("arguments[0].scrollIntoView();", edito)   
                             time.sleep(.5)     
                     
@@ -358,6 +399,7 @@ while sheet.cell(row=count, column=1).value is not None:
                             vayase = False
                             while not encontrado:
                                 try:
+                                    time.sleep(1)
                                     # Intenta encontrar el elemento
                                     edito.click()
                                     encontrado = True
@@ -368,10 +410,15 @@ while sheet.cell(row=count, column=1).value is not None:
                                     # Espera un momento para que la página se cargue y se actualice
                                     time.sleep(.7)
                                     if conta > 8:
-                                        vayase = True
-                                        break
+                                        if vayase == False:
+                                            vayase = True
+                                            conta = 0
+                                            edito = edito2  
+                                        else:
+                                            break
+                                                                                                                      
                                     conta += 1
-                            if vayase == True:
+                            if encontrado == False:
                                 raise Exception("ERROR: Se dañó en el ciclo del while de interesados") 
                             break
                     
@@ -382,7 +429,10 @@ while sheet.cell(row=count, column=1).value is not None:
             sheet['B'+str(count)] = "No está el folio en el VUR"
             workbook.save(directorio)
             flag = 0
-            
+            try:
+                driver.switch_to.alert.accept()  # Para aceptar la alerta (hacer clic en "Aceptar")
+            except:
+                print ("")
             driver.switch_to.default_content()
             wait = WebDriverWait(driver, timeout)
             #matricula = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#menu-navegacion > li:nth-child(5) > a"))).click()
