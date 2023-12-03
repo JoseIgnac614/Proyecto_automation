@@ -19,7 +19,7 @@ nombrearchivo = "Libro1.xlsx"
 directorio2 = "C:/Users/nacho/Downloads/Pruebas_autom/QC 01-12-2023/Faltaron/"
 directorio = directorio2+nombrearchivo
 
-DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
+DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
 #DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
 
 
@@ -240,7 +240,7 @@ while sheet.cell(row=count, column=1).value is not None:
                 break
             except:
                 driver.refresh()
-        
+        wait2 = WebDriverWait(driver, 50)
         while True:
             try:
                 if flag != 2:
@@ -259,10 +259,11 @@ while sheet.cell(row=count, column=1).value is not None:
                     
 
                     # Esperar hasta que el elemento tenga display: none
-                    wait2 = WebDriverWait(driver, 30)                    
+                                        
                     
                     try:
-                        wait2.until(driver.execute_script("return window.getComputedStyle(document.querySelector('#esperaModal')).getPropertyValue('display')") == 'none')
+                        #wait2.until(driver.execute_script("return window.getComputedStyle(document.querySelector('#esperaModal')).getPropertyValue('display')") != 'block')
+                        wait2.until(EC.invisibility_of_element_located((By.ID, "esperaModal")))
                         #print("El elemento con id='esperaModal' tiene display: none")
 
                     except:
@@ -270,8 +271,10 @@ while sheet.cell(row=count, column=1).value is not None:
                             alert = driver.switch_to.alert
                             #print("Alerta encontrada:", alert.text)
                             alert.accept()  # Para aceptar la alerta
+                            matricula.click()
+                            
                         except NoAlertPresentException:
-                            print("No se encontraron alertas")
+                            print("")
                     
                     
                     matricula = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(3) > div.panel-body > table > tbody > tr > td:nth-child(1) > a")))
@@ -279,7 +282,8 @@ while sheet.cell(row=count, column=1).value is not None:
                     #Si el elemento se encuentra, el bucle se detiene
                     
                     try:
-                        wait2.until(driver.execute_script("return window.getComputedStyle(document.querySelector('#esperaModal')).getPropertyValue('display')") == 'none')
+                        #wait2.until(driver.execute_script("return window.getComputedStyle(document.querySelector('#esperaModal')).getPropertyValue('display')") != 'block')
+                        wait2.until(EC.invisibility_of_element_located((By.ID, "esperaModal")))
                         #print("El elemento con id='esperaModal' tiene display: none")
 
                     except:
@@ -288,7 +292,7 @@ while sheet.cell(row=count, column=1).value is not None:
                             #print("Alerta encontrada:", alert.text)
                             alert.accept()  # Para aceptar la alerta
                         except NoAlertPresentException:
-                            print("No se encontraron alertas")
+                            print("")
                     
                     
                     matricula = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'div.panel.panel-primary.datos-basicos[ng-show="pantallaDatosBasicos"]:not(.ng-hide)'))
@@ -316,6 +320,8 @@ while sheet.cell(row=count, column=1).value is not None:
                     entrar = driver.find_element(By.CSS_SELECTOR, "#menu-navegacion > li.dropdown.open > ul > li > ul > li:nth-child(2) > a")
                     entrar.click()
 
+                    
+                    
                     iframe = driver.find_element(By.XPATH, "//iframe[@id='page']")
                     driver.switch_to.frame(iframe)
                     flag = 2
@@ -324,6 +330,19 @@ while sheet.cell(row=count, column=1).value is not None:
                     EC.visibility_of_element_located((By.CSS_SELECTOR, 'div.panel.panel-primary[ng-show="pantallaDatosJuridicos"]:not(.ng-hide)'))
                 )
 
+                try:
+                    #wait2.until(driver.execute_script("return window.getComputedStyle(document.querySelector('#esperaModal')).getPropertyValue('display')") != 'block')
+                    wait2.until(EC.invisibility_of_element_located((By.ID, "esperaModal")))
+                    #print("El elemento con id='esperaModal' tiene display: none")
+
+                except:
+                    try:
+                        alert = driver.switch_to.alert
+                        #print("Alerta encontrada:", alert.text)
+                        alert.accept()  # Para aceptar la alerta
+                    except NoAlertPresentException:
+                        print("")
+            
                 # Esperar hasta que se encuentre un elemento <li> que contiene "Lista"
                 elemento = WebDriverWait(driver, timeout).until(
                     EC.presence_of_element_located((By.CSS_SELECTOR, "body > div.wrapper.ng-scope > div > div:nth-child(11) > div > div.tabbable.ng-isolate-scope > ul > li:nth-child(2)"))
@@ -436,7 +455,14 @@ while sheet.cell(row=count, column=1).value is not None:
             driver.switch_to.default_content()
             wait = WebDriverWait(driver, timeout)
             #matricula = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#menu-navegacion > li:nth-child(5) > a"))).click()
-            
+    
+    # Obtener la lista de archivos en el directorio
+    archivos = os.listdir(DirDescargasVUR)
+
+    # Eliminar archivos que contienen 'VUR' en su nombre
+    for archivo in archivos:
+        if 'VUR' in archivo:
+            os.remove(os.path.join(DirDescargasVUR, archivo))      
     count += 1
 #root_window.mainloop()
 reproducir_audio(ruta_audio)
