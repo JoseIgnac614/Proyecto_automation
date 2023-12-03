@@ -19,7 +19,7 @@ nombrearchivo = "Libro1.xlsx"
 directorio2 = "C:/Users/nacho/Downloads/Pruebas_autom/QC 01-12-2023/Faltaron/"
 directorio = directorio2+nombrearchivo
 
-DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
+DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
 #DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
 
 
