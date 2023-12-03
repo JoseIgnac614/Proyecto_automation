@@ -7,10 +7,31 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 # Carpeta que contiene las subcarpetas con los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/CONSULTA REVISION/"
+carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/QC 01-12-2023/Faltaron/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"informacion_propiedades.csv"
+
+
+
+
+
+
+
+
+def eliminar_secuencias_repetidas(cadena):
+    # Encuentra todas las secuencias repetidas de dos o más palabras
+    patron = r'\b(\w+(?:\s+\w+)+)\b\s+\1\b'
+    coincidencias = re.findall(patron, cadena)
+
+    # Reemplaza cada secuencia repetida por solo una instancia de las palabras
+    for secuencia in coincidencias:
+        if cadena.count(secuencia) > 1:
+            # Reemplazar todas las ocurrencias menos una de cadena2 en cadena1
+            cadena = cadena.replace(secuencia, '', cadena.count(secuencia) - 1)
+    cadena = ' '.join(filter(None, cadena.split()))
+    return cadena
+
 
 # Cargar las normas de corrección desde el archivo "norma.csv" en un diccionario
 normas = {}
@@ -114,26 +135,41 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         matriculas_derivadas = matriculas_derivadas_match.group(1).strip().split() if matriculas_derivadas_match.group(1) else []
                         info_dict["Matrículas derivadas"] = " ".join(matriculas_derivadas) if matriculas_derivadas else None
                     
-                    # if folio == '37635':
+                    # if folio == '48799':
                     #     print ('hola')
                     #Extraer número después de "Area de terreno Hectareas:" o "AREA:"
-                        
+                    area_terreno = "" 
                     if not bool_area:
                         areas = ["area","�REA","Metros:", "Centimietros:"]
                         for i in areas:
                             textarea = text.split("Salvedades")[0].strip()
                             area_match = re.search(rf"({i})\D*(\d+(\.\d+)?) ", textarea, re.IGNORECASE)
-                            # if archivo_pdf == "148-50746 B.pdf":
-                            #     print (re.search(rf"({i})\s+(\d+(\.\d+)?)", text))
-                            if area_match and str(area_match.group(2)) != "0":
-                                etiqueta = area_match.group(1)
-                                
-                                if etiqueta == "Centimietros:":
+                            
+                            if i == 'Centimietros:':
+                                oe = re.findall(rf"({i})\D*(\d+(\.\d+)?)", textarea, re.IGNORECASE)
+                                if oe:
+                                    area_match = oe[0]
+                                    # print (area_match)
+                                    posicion2 = area_match[1]
+                            elif area_match:    
+                                posicion2 = area_match.group(2)
+                            #area_matches = re.findall(rf"({i})\D*(\d+(\.\d+)?)", textarea, re.IGNORECASE)
+                            # for match in area_matches:
+                            #     print(match)
+                            # # if archivo_pdf == "148-50746 B.pdf":
+                            # #     print (re.search(rf"({i})\s+(\d+(\.\d+)?)", text))
+                            # if area_match:
+                            #     hola1 = area_match.group(0)
+                            #     hola2 = area_match.group(1)
+                            #     hola3 = area_match.group(2)
+
+                            if area_match and str(posicion2) != "0" and str(posicion2) != "":
+                                if i == "Centimietros:":
                                     # Si la etiqueta es "Centimetros:", concatena el valor con un punto
-                                    valor = area_match.group(2)
+                                    valor = posicion2
                                     area_terreno += "." + valor
                                 else:
-                                    valor = area_match.group(2)
+                                    valor = posicion2
                                     area_terreno = valor
                                 #print("Área de Terreno:", area_terreno)  # Agrega esta línea para depura
                                 info_dict["Área de Terreno"] = area_terreno
@@ -168,8 +204,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                         # Aplicar las normas de corrección
                         for palabra, reemplazo in normas.items():
-                            direccion_corregida = direccion_corregida.replace(palabra, reemplazo)
-
+                            direccion_corregida = direccion_corregida.replace(palabra, reemplazo)                        
+                        #info_dict["Dirección Corregida"] = eliminar_secuencias_repetidas(direccion_corregida)
                         info_dict["Dirección Corregida"] = direccion_corregida
                     else:
                         info_dict["Dirección Corregida"] = None
