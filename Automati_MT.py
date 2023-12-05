@@ -501,6 +501,10 @@ def llenar_predio(hojainfo,mat_matriz,direccion,areaTerr):
         if combobox_id == '#W0014vACTPREDIOARETERR':
             opcion = ajustar_numero(opcion)
         
+        if combobox_id == '#W0014vACTPREDIODIREPRIP' and valor.strip() == '' and opcion == '':
+            element.send_keys("SIN DIRECCION")
+            cambiosQC.value = cambiosQC.value + f'\nSin direccion en Multicarto ni en VUR'
+        
         if valor.strip() and opcion == '' and combobox_id == '#W0014vACTPREDIODIREPRIP':
             print ("")
         elif valor.strip() == opcion.strip():
