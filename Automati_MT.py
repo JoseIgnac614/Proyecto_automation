@@ -22,11 +22,11 @@ meterleservi =          True                #METERLE SERVIDUMBRE O NO???????????
 revisar_interesados =   False                #REVISAR INTERESADOSSS????????????? (Mirar cuales estan mal, eliminar, modificar)
 modoqc              =   True                #Modidica interesados pero debe estar revisar_interesados activa, derecho se modifica,
 poneraprobado       =   True                #Poner estado en aprobado, False = lo pone en realizado
-HibernarPC =            False               #HIBERNAR PC AL TEMRINAR????????
+HibernarPC =            True               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/QC 01-12-2023/Faltaron/"
+carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/QC 05-12-2023/"
 nombre_excel = 'Libro1.xlsx'
 
 
@@ -132,45 +132,100 @@ def crear_servidumbre(cadenaserv,cadena_escritura):
 
         textito = f"ESTABLECIDA MEDIANTE ESCRITURA {n_escritura} DE {date_doc}"
         
-        for i in selectores:
-            if i.upper() in cadenaserv:
-                time.sleep(1)
-                select_element.send_keys("Servidumbre_"+i)
-                time.sleep(1)
-                
-                try:
-                    elemento_span = driver.find_element(By.ID,"span_W0046ACTSERVTIPOID_0001")
-                    valor_seleccionado = elemento_span.text
-                    
-                    elemento_span2 = driver.find_element(By.ID,"span_W0046ACTSERVIDUMBREOBS_0001")
-                    # Obtener el texto dentro del elemento
-                    observacion = elemento_span2.text
-                except:
-                    valor_seleccionado = ""
-                    observacion = ""
-                
-                if i not in valor_seleccionado or str(n_escritura) not in observacion:
-                    
-                    if i not in valor_seleccionado:
-                        cambiosQC.value = cambiosQC.value + '\nServidumbre añadido'
-                    elif str(n_escritura) not in observacion:
-                        cambiosQC.value = cambiosQC.value + '\nObservacion de servidumbre añadida'
-                    
-                    try:
-                        driver.find_element(By.CSS_SELECTOR, "#span_W0046ACTSERVTIPOID_0001")
-                        time.sleep(1)
-                        driver.find_element(By.CSS_SELECTOR, "#W0046vDELETE_0001").click()
-                        time.sleep(1)
-                        wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
-                    except:
-                        print ("")                    
-                    driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVIDUMBREOBS").send_keys(textito)
-                    time.sleep(1)
-                    driver.find_element(By.CSS_SELECTOR, "#W0046ENTER").click()
-                    wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
-                    time.sleep(1)
-                break
+        dic_serv = {}
+        for j in selectores:
+            if j.upper() in cadenaserv:
+                dic_serv[j] = False
+        add_serv = dic_serv.copy()
+        servis_arreglar = []
+        eliminar_serv = []
         
+        avisounavez = True
+        existe = False        
+        
+        elementos_tr = driver.find_elements(By.CSS_SELECTOR, 'tr[id^="W0046GridContainerRow_"]')
+        n_elementos = len(elementos_tr)
+        
+    
+        # n_ser_encon = 1000000
+        existe = False
+        for k in range(n_elementos):                
+            try:
+                elemento_span = driver.find_element(By.ID,f"span_W0046ACTSERVTIPOID_000{k+1}")
+                valor_seleccionado = elemento_span.text
+                
+                elemento_span2 = driver.find_element(By.ID,f"span_W0046ACTSERVIDUMBREOBS_000{k+1}")
+                # Obtener el texto dentro del elemento
+                observacion = elemento_span2.text
+            except:
+                valor_seleccionado = ""
+                observacion = ""
+            
+            for a in add_serv:
+                add_serv[a] = False
+            
+            for index,i in enumerate(dic_serv.keys()):
+                if i in valor_seleccionado and str(n_escritura) in observacion and dic_serv[i] != True:
+                    
+                    dic_serv[i] = True
+                    add_serv[i] = True
+                
+                # elif dic_serv[i]:
+                #     eliminar_serv.append(k)
+                elif all(valor == False for valor in add_serv.values()) and index == len(dic_serv) - 1:
+                    eliminar_serv.append(k)
+                    cambiosQC.value = cambiosQC.value + '\nServidumbre modificado'
+                    # elif str(n_escritura) not in observacion:
+                    #     cambiosQC.value = cambiosQC.value + '\nObservacion de servidumbre añadida'
+            
+            # if i not in valor_seleccionado or existe:
+            #     if avisounavez:
+            #         cambiosQC.value = cambiosQC.value + '\nServidumbre añadido'
+            #         servis_arreglar.append(i)
+            #     if not existe:
+            #         dic_serv[k] = False
+            #     else:
+            #         dic_serv[k] = True
+            #     avisounavez = False
+            # elif str(n_escritura) not in observacion:
+            #     if avisounavez:
+            #         cambiosQC.value = cambiosQC.value + '\nObservacion de servidumbre añadida'
+            #         servis_arreglar.append(i)
+            #     dic_serv[k] = True
+            #     avisounavez = False
+            # else:
+            #     existe = True
+            
+                # for o in servis:
+                #     if o in valor_seleccionado:
+                #         existe = True
+                #         break  # Si deseas detener la búsqueda después de encontrar la primera coincidencia
+        sustractor = 0
+        for clave in eliminar_serv:
+
+            try:
+                driver.find_element(By.CSS_SELECTOR, f"#span_W0046ACTSERVTIPOID_000{clave+1 - sustractor}")
+                time.sleep(1)
+                driver.find_element(By.CSS_SELECTOR, f"#W0046vDELETE_000{clave+1 - sustractor}").click()
+                time.sleep(1)
+                wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
+            except:
+                print ("")
+            sustractor = sustractor + 1
+
+        for arreglo in dic_serv:
+            if dic_serv[arreglo] == False:
+                time.sleep(1)
+                select_element.send_keys("Servidumbre_"+arreglo)
+                time.sleep(1)
+                driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVIDUMBREOBS").send_keys(textito)
+                time.sleep(1)
+                driver.find_element(By.CSS_SELECTOR, "#W0046ENTER").click()
+                wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
+                time.sleep(1)
+                select_element = driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVTIPOID")
+
+            
                 
     
 
@@ -521,6 +576,7 @@ def llenar_predio(hojainfo,mat_matriz,direccion,areaTerr):
         #     element.send_keys(opcion)
     
     cambioestado = driver.find_element(By.CSS_SELECTOR, "#W0014vACTPREDIOESTADO")
+    time.sleep(1)
     if poneraprobado:
         cambioestado.send_keys("Aprobado")
     else:
@@ -830,7 +886,7 @@ def buscar_inter_malo(driver, datosjuridicos, sininteres, unaveznomas,n_ciclo,ma
                 if buscar_nombre != "":
                     contador_findnames += 1
                     
-                if buscar_nombre == nombre_completo or buscar_nombre == nombre_sin_segundo_nombre:
+                if  nombre_completo in buscar_nombre or nombre_sin_segundo_nombre in buscar_nombre:
                     buscar_malos[2] = False
                     buscar_tipo = elemento.find_elements(By.CSS_SELECTOR, "td:nth-child(5) span")
                     buscar_tipo = buscar_tipo[0].text
@@ -1195,14 +1251,15 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     priape = datosjuridicos["Primer Apellido"] 
                                     segape = datosjuridicos["Segundo Apellido"]
                                     
+                                    datosjuridicos["Segundo Apellido"] = datosjuridicos["Segundo Nombre"]
                                     if datosjuridicos["Primer Nombre"] == '':
                                         datosjuridicos["Primer Apellido"] = segape
                                     else:
                                         datosjuridicos["Primer Apellido"] = datosjuridicos["Primer Nombre"]
                                         datosjuridicos["Segundo Nombre"] = segape
-                                    datosjuridicos["Segundo Apellido"] = datosjuridicos["Segundo Nombre"]
-                                    datosjuridicos["Primer Nombre"] = priape      
-                                
+                                    
+                                    datosjuridicos["Primer Nombre"] = priape  
+                                        
                                 for clave in nombres_apellidos_claves:
                                     if clave in ['Primer Nombre', 'Segundo Nombre'] and datosjuridicos[clave] != "":
                                         datosjuridicos[clave] = datosjuridicos[clave] + " "
@@ -1441,13 +1498,13 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     if datosjuridicos["Género"] == 'N':
                                         priape = datosjuridicos["Primer Apellido"] 
                                         segape = datosjuridicos["Segundo Apellido"]
-                                        
+                                        datosjuridicos["Segundo Apellido"] = datosjuridicos["Segundo Nombre"]
                                         if datosjuridicos["Primer Nombre"] == '':
                                             datosjuridicos["Primer Apellido"] = segape
                                         else:
                                             datosjuridicos["Primer Apellido"] = datosjuridicos["Primer Nombre"]
                                             datosjuridicos["Segundo Nombre"] = segape
-                                        datosjuridicos["Segundo Apellido"] = datosjuridicos["Segundo Nombre"]
+                                        
                                         datosjuridicos["Primer Nombre"] = priape                                
                                                 
                                     for clave in nombres_apellidos_claves:

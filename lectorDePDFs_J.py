@@ -7,7 +7,7 @@ import pandas as pd
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/QC 01-12-2023/Faltaron/"
+carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/David/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
