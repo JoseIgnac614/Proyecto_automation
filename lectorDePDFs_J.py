@@ -7,12 +7,19 @@ import pandas as pd
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/CONSULTA REVISION/"
+carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/David/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
 # Cargar el archivo CSV
 df = pd.read_csv('Data_generos.csv', sep=';')
+
+
+
+
+
+
+
 
 def dividir_nombres(nombre):
     nombres = nombre.split()
@@ -102,8 +109,9 @@ anotacionessiosi = ["COMPRAVENTA (MODO DE ADQUISICION)",
                     "COMPRAVENTA MODALIDAD: (NOVIS)",
                     "LOTEO (OTRO)",
                     "CONSTITUCION DE URBANIZACION",
-                    "COMPRAVENTA POSESION"
-                    "(FALSA"
+                    "COMPRAVENTA POSESION",
+                    "(FALSA",
+                    "EQUIVALENTE A UNA 7/8 PARTE"
                     ]
 
 delimitado_cedula = [" CC "," TI ", " NIT. ","(ME X","(MENOR) X"," (MENOR) X", " X", " # "]
@@ -177,7 +185,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             count_nr1_a += 1
                         if re.search(r"servidumbre", line, re.IGNORECASE):
                             tipo_servidumbre_match = re.search(r'SERVIDUMBRE(.*?)\(LIMITACION AL DOMINIO\)', line)
-                            tipo_servidumbre = tipo_servidumbre_match.group(1).strip() if tipo_servidumbre_match and tipo_servidumbre_match.group(1).strip() else "TRANSITO"
+                            tipo_servidumbre = tipo_servidumbre_match.group(1).strip() if tipo_servidumbre_match and tipo_servidumbre_match.group(1).strip() else "ACUEDUCTO"
                             n_escritura_servidumbre = n_escrotora              
                         elif tipo_servidumbre == "":
                             tipo_servidumbre = "NO"
@@ -195,7 +203,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 # Comprobar si "ANOTACION: Nro 1" se encontró y "ANOTACION" aparece más de una vez
                 resultado = count_anotacion_nro_1 == 1 and count_anotacion == 1
 
-                
+                A_encontrado = False
                 
                 for page in reversed(pdf.pages):
                     if encontrado_x and encontrado_an:
@@ -210,7 +218,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         if "https" in line or "Consultas VUR" in line:  # Ejemplo de condición
                             continue  # Si el número es par, pasa al siguiente número sin ejecutar el código restante
                         
-                        # if folio == "40566":
+                        # if folio == "55165":
                         #     print ("tons")
                         if "DE:" in line:           #para poder guardar un párrafo solo cuando tenga "DE:"
                             encontrado_de = True
@@ -221,8 +229,15 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             nuevos_numeros = [numero.strip() for numero in line.split("No: ")[1].split(",")]
                             numeros_cancelados = numeros_cancelados + nuevos_numeros
                         
-                        if ("A:" in line or "DE:" in line) and encontrado_nr2:
-                            encontrado_nr2 = encontrado_de = True
+                        if ("A:" in line or "DE:" in line) and encontrado_nr2:                            
+                            if "A:" in line:
+                                A_encontrado = True
+                                encontrado_de = True  
+                            elif "DE:" in line and A_encontrado == False:
+                                encontrado_de = True    
+                            else:
+                                encontrado_nr2 = False                            
+                                
                         elif not ("A:" in line or "DE:" in line) and encontrado_nr2 and encontrado_de:
                             encontrado_nr2 = False
 

@@ -16,10 +16,10 @@ from selenium.common.exceptions import NoAlertPresentException
 
 nombrearchivo = "Libro1.xlsx"
 #directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
-directorio2 = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/30-11-2023/"
+directorio2 = "C:/Users/nacho/Downloads/Pruebas_autom/QC 05-12-2023/"
 directorio = directorio2+nombrearchivo
 
-DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
+DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
 #DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
 
 
@@ -248,7 +248,7 @@ while sheet.cell(row=count, column=1).value is not None:
                     for combobox_id, opcion in informacion_combobox.items():
                         element = driver.find_element(By.CSS_SELECTOR, combobox_id)
                         element.send_keys(opcion)
-                        time.sleep(.5)
+                        time.sleep(.8)
 
                     wait = WebDriverWait(driver, timeout)
                     # Haz clic en el botón "Continuar" (ajusta el selector según tu página)
