@@ -7,7 +7,7 @@ import pandas as pd
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/David/"
+carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/06-12-2023/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
@@ -173,7 +173,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         if "Doc: ESCRITURA" in line:
                             escrotura_match = re.search(r'ESCRITURA(.*?)(\d+):', line)
                             n_escrotora = escrotura_match.group(1).strip() if escrotura_match else None
-                        if "ANOTACION" in line:
+                        if "ANOTACION:" in line:
                             count_anotacion += 1
                             if " Nro 1 " in line:
                                 count_anotacion_nro_1 = True
@@ -262,8 +262,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                             # TRATAMIENTO DE DATOS PARA LA CÉDULA Y NOMBRE
                             nombre = line[3:]
-                            # if folio == '18938':
-                            #     print ("CHAO")
+                            if folio == '84642':
+                                print ("CHAO")
                             nombre, cedula, porcens = dividir_por_delimitadores(delimitado_cedula, nombre)
                             if " I" in cedula:
                                 cedula = cedula.split(" I")[0]
@@ -280,10 +280,10 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             cedulas.append(cedula)
                             porcentajes.append(porcens)
                             texto_lineas.insert(0, line)
-                        elif encontrado_x and "ANOTACION" not in line:
+                        elif encontrado_x and "ANOTACION:" not in line:
                             texto_lineas.insert(0, line)
                             #print ("texto_lineas ->> ",texto_lineas)
-                        elif encontrado_x and "ANOTACION" in line:
+                        elif encontrado_x and "ANOTACION:" in line:
                             if encontrado_de:
                                 encontrado_an = True
                                 encontrado_de = False
@@ -304,7 +304,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                 cedulas = []
                                 porcentajes = []
                                 texto_lineas = []
-                        if "ANOTACION" in line:
+                        if "ANOTACION:" in line:
                             encontrado_de = False
                         # if folio == '18623':
                         #     print ("hola")
@@ -326,9 +326,9 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     date_registro = date_registro_match.group(0) if date_registro_match else None
 
                     # Buscar la primera fecha en formato AAAA-MM-DD después del primer salto de línea
-                    date_documento_match = re.search(r'DEL (\d{4}-\d{2}-\d{2}) ', texto_celda)
+                    date_documento_match = re.search(r'del (\d{4}-\d{2}-\d{2}) ', texto_celda,re.IGNORECASE)
                     date_documento = date_documento_match.group(1) if date_documento_match else None
-                    # if folio == '32666':
+                    # if folio == '84642':
                     #     print ('error fecha->>',folio)
                     date_documento = datetime.strptime(date_documento, "%Y-%m-%d").strftime("%d-%m-%Y")
 
@@ -415,7 +415,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             segundo_apellido.append(sa) 
                             i += 1
                         
-                        # if folio == "32446":
+                        # if folio == "84642":
                         #     print ("hola")
                         
                         for page in reversed(pdf.pages):
