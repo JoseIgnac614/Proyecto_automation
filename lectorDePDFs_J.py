@@ -227,7 +227,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         elif "Se cancela anotación No: " in line:
                             # Buscar números después de "No:"
                             nuevos_numeros = [numero.strip() for numero in line.split("No: ")[1].split(",")]
-                            numeros_cancelados = numeros_cancelados + nuevos_numeros
+                            if nuevos_numeros != "1":
+                                numeros_cancelados = numeros_cancelados + nuevos_numeros
                         
                         if ("A:" in line or "DE:" in line) and encontrado_nr2:                            
                             if "A:" in line:
