@@ -7,7 +7,7 @@ import pandas as pd
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/06-12-2023/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/06-12-2023/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
@@ -227,7 +227,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         elif "Se cancela anotación No: " in line:
                             # Buscar números después de "No:"
                             nuevos_numeros = [numero.strip() for numero in line.split("No: ")[1].split(",")]
-                            if nuevos_numeros != "1":
+                            if "1" not in nuevos_numeros:
                                 numeros_cancelados = numeros_cancelados + nuevos_numeros
                         
                         if ("A:" in line or "DE:" in line) and encontrado_nr2:                            
@@ -262,8 +262,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                             # TRATAMIENTO DE DATOS PARA LA CÉDULA Y NOMBRE
                             nombre = line[3:]
-                            if folio == '84642':
-                                print ("CHAO")
+                            # if folio == '84642':
+                            #     print ("CHAO")
                             nombre, cedula, porcens = dividir_por_delimitadores(delimitado_cedula, nombre)
                             if " I" in cedula:
                                 cedula = cedula.split(" I")[0]
