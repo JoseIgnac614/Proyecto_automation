@@ -7,7 +7,7 @@ import pandas as pd
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/06-12-2023/"
+carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/06-12-2023/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
@@ -337,11 +337,11 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     escritura = escritura_match.group(1) if escritura_match else None
 
                     # Buscar el primer número después del primer salto de línea
-                    n_escritura_match = re.search(r'(\w+) (.*?) DEL', texto_celda)
+                    n_escritura_match = re.search(r'(\w+) (.*?) DEL', texto_celda,re.IGNORECASE)
                     n_escritura = n_escritura_match.group(2) if n_escritura_match else None
                         
                     # Buscar la cadena de caracteres entre "00:00:00 " y " VALOR"
-                    ente_match = re.search(r':(\d+) (.*?) VALOR', texto_celda)
+                    ente_match = re.search(r':(\d+) (.*?) VALOR', texto_celda,re.IGNORECASE)
                     if ente_match:
                         ente = ente_match.group(2).upper()
                         if "JUZGADO" not in ente:

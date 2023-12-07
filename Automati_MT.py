@@ -19,17 +19,17 @@ pestañapredio  =        True                #DECIDE SI LLENAR PESTAÑA PREDIO O
 
 llenarsolopredio =      1                   #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
 meterleservi =          True                #METERLE SERVIDUMBRE O NO???????????????    False para no, True para sí
-revisar_interesados =   False                #REVISAR INTERESADOSSS????????????? (Mirar cuales estan mal, eliminar, modificar)
-modoqc              =   True                #Modidica interesados pero debe estar revisar_interesados activa, derecho se modifica,
-poneraprobado       =   True                #Poner estado en aprobado, False = lo pone en realizado
+revisar_interesados =   True                #REVISAR INTERESADOSSS????????????? (Mirar cuales estan mal, eliminar, modificar)
+modoqc              =   False                #Modidica interesados pero debe estar revisar_interesados activa, derecho se modifica,
+poneraprobado       =   False                #Poner estado en aprobado, False = lo pone en realizado
 HibernarPC =            True               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/QC 05-12-2023/"
+carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/06-12-2023/"
 nombre_excel = 'Libro1.xlsx'
 
-
+indice_folio = "303-"
 
 
 
@@ -49,7 +49,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 # Evitar que el PC se suspenda
 ctypes.windll.kernel32.SetThreadExecutionState(0x80000002)
 
-indice_folio = "148-"
+
 
 archivo_excel = openpyxl.load_workbook(carpeta_almacenamiento+nombre_excel)
 
@@ -971,23 +971,24 @@ for columna in hojajuridico.iter_cols(min_row=1, max_row=1):
             columna_max_juridico = celda.column
 
 # Navega a la página web deseada
-driver.get("https://www.realidad5.com/realmultipropositosahagun/servlet/com.realmultipropositogam.iniciosesion")
+driver.get("https://www.realidad5.com/realmultipropositobarranca/servlet/com.realmultipropositogam.iniciosesion")
 
 
 while True:
     try:
         # Localiza el campo de texto de usuario por su selector CSS
         campo_usuario = driver.find_element(By.CSS_SELECTOR, "#vUSERNAME")
-        campo_usuario.send_keys("jgonzalez")
+        campo_usuario.send_keys("jgonzalez.realtix@gmail.com")
 
         # Localiza el campo de texto de contraseña por su selector CSS
         campo_contrasena = driver.find_element(By.CSS_SELECTOR, "#vUSERPASSWORD")
         #campo_contrasena.send_keys("u9OPY2tnZs*71")   #SAN LUIS
-        campo_contrasena.send_keys("hg1PXuk@9sx34")
+        campo_contrasena.send_keys("JG1100973580")
 
         entrar = driver.find_element(By.CSS_SELECTOR, "#BTNENTER")
         entrar.click()
-        wait = WebDriverWait(driver, 5)
+        wait = WebDriverWait(driver, 10)
+        # time.sleep(10)
         mas = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#TEXTBLOCKTITLE_MPAGE")))
         break
     except:
@@ -1025,7 +1026,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                             datos[encabezado] = fila[columna-1].value
                 
                 if flag != 1:    
-                    driver.get("https://www.realidad5.com/realmultipropositosahagun/servlet/com.realmultipropositogam.wwfichprediact")
+                    driver.get("https://www.realidad5.com/realmultipropositobarranca/servlet/com.realmultipropositogam.wwfichprediact")
                     wait = WebDriverWait(driver, 5)
                     holi = WebDriverWait(driver, 10)
                     while True:
