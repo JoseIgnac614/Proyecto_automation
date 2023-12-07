@@ -16,7 +16,7 @@ from selenium.common.exceptions import NoAlertPresentException
 
 nombrearchivo = "Libro1.xlsx"
 #directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
-directorio2 = "C:/Users/nacho/Downloads/Pruebas_autom/QC 05-12-2023/"
+directorio2 = "C:/Users/nacho/Downloads/Pruebas_autom/06-12-2023/"
 directorio = directorio2+nombrearchivo
 
 DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
@@ -67,10 +67,10 @@ sheet = workbook['Hoja1']
 
 
 
-departameto= 'CORDOBA'
-municipio = 'SAHAGUN'           #
-circulo = 'ORIP - SAHAGUN'             #ORIP - 
-valor_indice = '148'
+departameto= 'SANTANDER'
+municipio = 'BARRANCABERMEJA'           #
+circulo = 'ORIP - '+municipio             #ORIP - 
+valor_indice = '303'
 #valor_excel va a ser el A1 del excel
 
 
