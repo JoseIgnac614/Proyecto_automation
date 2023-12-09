@@ -16,10 +16,10 @@ from selenium.common.exceptions import NoAlertPresentException
 
 nombrearchivo = "Libro1.xlsx"
 #directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
-directorio2 = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/06-12-2023/"
+directorio2 = "C:/Users/nacho/Downloads/Pruebas_autom/08-12-2023/"
 directorio = directorio2+nombrearchivo
 
-DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
+DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
 #DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
 
 
@@ -84,8 +84,8 @@ numeros = [str(cell.value) for cell in sheet['A'] if cell.value]
 
 # Verificar y eliminar números si existen ambos archivos en el directorio
 for numero in numeros.copy():
-    nombre_archivo_b = f"148-{numero} B.pdf"
-    nombre_archivo_j = f"148-{numero} J.pdf"
+    nombre_archivo_b = f"{valor_indice}-{numero} B.pdf"
+    nombre_archivo_j = f"{valor_indice}-{numero} J.pdf"
     
     ruta_archivo_b = os.path.join(directorio2, nombre_archivo_b)
     ruta_archivo_j = os.path.join(directorio2, nombre_archivo_j)

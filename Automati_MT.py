@@ -26,7 +26,7 @@ HibernarPC =            True               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/06-12-2023/"
+carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/08-12-2023/"
 nombre_excel = 'Libro1.xlsx'
 
 indice_folio = "303-"
@@ -859,7 +859,10 @@ def buscar_inter_malo(driver, datosjuridicos, sininteres, unaveznomas,n_ciclo,ma
     contador_findnames = 0
     bool_avisar = False                      #avisa que el # de interesados es mayor en MT que en el excel
     cadena1_interesado = ""                 #Para ver los datos del interesado
-    nombre_completo = datosjuridicos["Primer Nombre"] + datosjuridicos["Segundo Nombre"] + datosjuridicos["Primer Apellido"] + datosjuridicos["Segundo Apellido"]
+    if datosjuridicos["Género"] == 'N':
+        nombre_completo = datosjuridicos["Primer Nombre"]
+    else:
+        nombre_completo = datosjuridicos["Primer Nombre"] + datosjuridicos["Segundo Nombre"] + datosjuridicos["Primer Apellido"] + datosjuridicos["Segundo Apellido"]
     nombre_sin_segundo_nombre = datosjuridicos["Primer Nombre"] + datosjuridicos["Primer Apellido"] + datosjuridicos["Segundo Apellido"]
 
     errordir={}
@@ -1090,7 +1093,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                     else:
                         nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+ 2)
                         nueva_celda.value = "Es PH, no se modifica"
-                
+
                 if llenarsolopredio:
                     folio_selec = datos['Folio']
                     fila_juridico = 0

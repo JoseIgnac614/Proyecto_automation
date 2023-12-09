@@ -7,7 +7,7 @@ import pandas as pd
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/06-12-2023/"
+carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/08-12-2023/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
@@ -67,14 +67,16 @@ def dividir_por_delimitadores(delimitadores, texto):
                 else:
                     cedula = ""
                 #partes[1].split("X")[0].strip()
-                
-                if "%" in temporal[1] or "/" in temporal[1]:
-                    resultado= re.search(r"\b(.*?)[\s%]", temporal[1])
-                    if resultado:
-                        if "/" in temporal[1]:
-                            porc = "=100*"+resultado.group(1)
-                        else:
-                            porc = resultado.group(1)
+                try:
+                    if "%" in temporal[1] or "/" in temporal[1]:
+                        resultado= re.search(r"\b(.*?)[\s%]", temporal[1])
+                        if resultado:
+                            if "/" in temporal[1]:
+                                porc = "=100*"+resultado.group(1)
+                            else:
+                                porc = resultado.group(1)
+                except:
+                    print("")            
             else:
                 cedula = partes[1].strip()
 
@@ -107,6 +109,7 @@ anotacionesfuera = ["CANCELACION",
 
 anotacionessiosi = ["COMPRAVENTA (MODO DE ADQUISICION)",
                     "COMPRAVENTA MODALIDAD: (NOVIS)",
+                    "CONSTITUCION REGLAMENTO",
                     "LOTEO (OTRO)",
                     "CONSTITUCION DE URBANIZACION",
                     "COMPRAVENTA POSESION",
