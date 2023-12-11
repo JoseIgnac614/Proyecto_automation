@@ -7,7 +7,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 # Carpeta que contiene las subcarpetas con los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/08-12-2023/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/09-12-2023/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"informacion_propiedades.csv"
@@ -49,11 +49,18 @@ informacion = []
 conversiones = {
     "HAS": 10000,  # 1 Ha = 10,000 m2
     "HECT": 10000,
+    "HTRS": 10000,
+    "HTS": 10000,
+    "HA": 10000,
+    "HECTAREAS": 10000,
     "M2": 1,        # 1 m2 = 1 m2
     "MTS": 1,
-    "MTS2": 1
+    "MTS2": 1,
+    "METROS2": 1,
+    "MTRS2": 1,
+    "METROS C":1
 }
-
+patronarea = re.compile(r'(?:^|\D)(\d[\d.,]*)\s+(HAS|HECT|HTRS|HTS|HECTAREAS|HA|M2|MTS|MTS2|METROS2|MTRS2|METROS C)\b')
 
 # Itera a través de las subcarpetas
 for subdir, _, archivos in os.walk(carpeta_raiz):
@@ -66,6 +73,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 info_dict["Folio"] = folio # Agregar el valor del "Folio" al diccionario info_dict
                 total_m2 = None
                 bool_area = False                       #señala  cuando hay una parte restante en el documento juridico
+                valor = None
                 
                 pdf_pathj = os.path.join(subdir, archivo_pdf.replace("B","J"))
                 if os.path.exists(pdf_pathj):
@@ -91,6 +99,16 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                         #valor = valor.replace(".", "").replace(",", "")  # Eliminar puntos y comas como separadores de miles
 
                                         # Determinar si el número debe ser tratado como decimal o número de miles
+                                        if ',' in valor and '.' in valor:
+                                            valor = valor.replace('.', '') 
+                                        elif valor.count('.') > 1:
+                                            partes = valor.rsplit('.', 1)  # Dividir la cadena en dos partes desde el último punto
+                                            if len(partes[-1]) < 3:  # Si los últimos dígitos después del último punto son menos de 3
+                                                valor = partes[0].replace('.', '') + '.' + partes[-1]  # Mantener solo el punto que separa la parte decimal
+                                        
+                                        # if folio == '60193':
+                                        #     print ('')
+                                        
                                         if ',' in valor:
                                             valor = valor.replace(',', '.')  # Reemplazar coma por punto para tratar como número decimal
                                         elif '.' in valor and len(valor.split('.')[-1]) == 3:
@@ -101,12 +119,13 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                                         if unidad in conversiones:
                                             valor_m2 = float(valor) * conversiones[unidad]
+                                            # print ('')
                                             if total_m2 is None:
                                                 total_m2 = valor_m2
                                             else:
                                                 total_m2 += valor_m2
                                                 break  # Romper el bucle si ya se encontró el valor total en m2
-                                            if unidad == "M2" or unidad == "MTS2":
+                                            if unidad == "M2" or unidad in "MTS2":
                                                 break
                                     
                                     if total_m2 != None: 
@@ -135,10 +154,63 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         matriculas_derivadas = matriculas_derivadas_match.group(1).strip().split() if matriculas_derivadas_match.group(1) else []
                         info_dict["Matrículas derivadas"] = " ".join(matriculas_derivadas) if matriculas_derivadas else None
                     
-                    # if folio == '48799':
-                    #     print ('hola')
+                    if folio == '61337':
+                        print ('hola')
                     #Extraer número después de "Area de terreno Hectareas:" o "AREA:"
                     area_terreno = "" 
+                    boolhect = False
+                    
+                    if "Linderos" in text:
+                        try:
+                            textarea = text.split("Cabidad y Linderos")[1].strip()
+                        except:
+                            print("")
+                        try:
+                            textarea = textarea.split("Linderos Tecnicamente Definidos")[0].strip()
+                        except:
+                            print("")
+                        
+                        # Buscar coincidencias en el texto
+                        coincidencias = re.findall(patronarea, textarea)
+
+                        # Iterar sobre las coincidencias
+                        for valor, unidad in coincidencias:
+                            if boolhect:
+                                continue
+                            if unidad in conversiones:
+                                if ',' in valor and '.' in valor:
+                                    valor = valor.replace('.', '') 
+                                elif valor.count('.') > 1:
+                                    partes = valor.rsplit('.', 1)  # Dividir la cadena en dos partes desde el último punto
+                                    if len(partes[-1]) < 3:  # Si los últimos dígitos después del último punto son menos de 3
+                                        valor = partes[0].replace('.', '') + '.' + partes[-1]  # Mantener solo el punto que separa la parte decimal
+
+                                if ',' in valor:
+                                    valor = valor.replace(',', '.')  # Reemplazar coma por punto para tratar como número decimal
+                                elif '.' in valor and len(valor.split('.')[-1]) == 3:
+                                    valor = valor.replace('.', '')  # Tratar como número de miles si tiene tres dígitos después del punto
+
+
+                                valor_m2 = float(valor) * conversiones[unidad]
+                                if conversiones[unidad] == 10000:
+                                    boolhect = True
+                                    
+                                if total_m2 is None:
+                                    total_m2 = valor_m2
+                                else:
+                                    total_m2 += valor_m2
+                                    info_dict["Área de Terreno"] = total_m2
+                                    break  # Romper el bucle si ya se encontró el valor total en m2
+                                if unidad == "M2" or unidad in "MTS2" or unidad == "METROS2" or unidad == "MTRS2" or unidad == "METROS C":
+                                    info_dict["Área de Terreno"] = total_m2
+                                    break
+                                
+                        if total_m2 != None: 
+                            info_dict["Área de Terreno"] = str(total_m2)
+                            break
+                        else:
+                            bool_area = False
+                    
                     if not bool_area:
                         areas = ["area","�REA","Metros:", "Centimietros:"]
                         for i in areas:
@@ -173,6 +245,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                     area_terreno = valor
                                 #print("Área de Terreno:", area_terreno)  # Agrega esta línea para depura
                                 info_dict["Área de Terreno"] = area_terreno
+                                
+                       
 
                     # Buscar la palabra "Servidumbre"
                     servidumbre_match = re.search(r"servidumbre", text, re.IGNORECASE)
