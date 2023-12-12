@@ -14,7 +14,7 @@ archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
 # Cargar el archivo CSV
 df = pd.read_csv('Data_generos.csv', sep=';')
 
-
+soloPH = False                                      #Poner true si se quieren solo las anotaciones de PH
 
 
 
@@ -88,7 +88,12 @@ primer_nombre  = []
 segundo_nombre = []
 primer_apellido = []
 segundo_apellido = []
-anotacionesfuera = ["CANCELACION",
+anotacionesfuera = [
+                    # "COMPRAVENTA",                                   #TEMPORAAAAAAAL PARA PROPIEDAD HORIZONTAL       
+                    # "ADJUDICACION",                                   #TEMPORAAAAAAAL PARA PROPIEDAD HORIZONTAL 
+                    # "ESTE Y OTRO",                                           #TEMPORAAAAAAAL PARA PROPIEDAD HORIZONTAL 
+                    
+                    "CANCELACION",
                     "PARCIAL",
                     "PARCILA",
                     " PA ",
@@ -106,18 +111,21 @@ anotacionesfuera = ["CANCELACION",
                     "COMPRAVENTA DERECHOS DE CUOTA",
                     "% (MODO DE ADQUISICION)",
                     "ENAJENAR",
-                    "HIPOTECA"  
-                    "OFERTA DE COMPRA"                  
+                    "HIPOTECA",  
+                    "OFERTA DE COMPRA",           
+                   
                     ]
 
-anotacionessiosi = ["COMPRAVENTA (MODO DE ADQUISICION)",
+anotacionessiosi = [
+                    "COMPRAVENTA (MODO DE ADQUISICION)",
                     "COMPRAVENTA MODALIDAD: (NOVIS)",
                     "CONSTITUCION REGLAMENTO",
                     "LOTEO (OTRO)",
                     "CONSTITUCION DE URBANIZACION",
                     "COMPRAVENTA POSESION",
                     "(FALSA",
-                    "EQUIVALENTE A UNA 7/8 PARTE"
+                    "EQUIVALENTE A UNA 7/8 PARTE",
+                    # "HORIZONTAL"   #TEMPORAAAAAAAL PARA PROPIEDAD HORIZONTAL    
                     ]
 
 delimitado_cedula = [" CC "," TI ", " NIT. ","(ME X","(MENOR) X"," (MENOR) X", " X", " # "]
@@ -161,10 +169,6 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 resultado = False
                 n_anotacion = -100000000
                 
-                
-                
-                
-                n_escritura_servidumbre = ""
                 # derechoscuota = False           #Para cuando hay derechos de cuota que toca cambiar 
                 # nombres_de = []
                 # cedulas_de = []
@@ -176,9 +180,6 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     # Contar cuántas veces aparece "ANOTACION: Nro 1" y "ANOTACION" en todas las líneas
                     lines = page.extract_text().splitlines()
                     for line in lines:
-                        if "Doc: ESCRITURA" in line:
-                            escrotura_match = re.search(r'ESCRITURA(.*?)(\d+):', line)
-                            n_escrotora = escrotura_match.group(1).strip() if escrotura_match else None
                         if "ANOTACION:" in line:
                             count_anotacion += 1
                             if " Nro 1 " in line:
@@ -188,13 +189,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             if n_anotacion < int(anotacion_match.group(1)) if anotacion_match else None:
                                 n_anotacion = int(anotacion_match.group(1))
                         if count_anotacion_nro_1 and "A:" in line or count_nr1_a == 0 and "DE:" in line:
-                            count_nr1_a += 1
-                        if re.search(r"servidumbre", line, re.IGNORECASE):
-                            tipo_servidumbre_match = re.search(r'SERVIDUMBRE(.*?)\(LIMITACION AL DOMINIO\)', line)
-                            tipo_servidumbre = tipo_servidumbre_match.group(1).strip() if tipo_servidumbre_match and tipo_servidumbre_match.group(1).strip() else "ACUEDUCTO"
-                            n_escritura_servidumbre = n_escrotora              
-                        elif tipo_servidumbre == "":
-                            tipo_servidumbre = "NO"
+                            count_nr1_a += 1    
                         if re.search(r"horizontal", line, re.IGNORECASE):
                             ph = "SI"
                         if any(keyword in line for keyword in anotacionessiosi) and (pag_encontrado == page or sianotacion == False):
@@ -208,7 +203,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                 # Comprobar si "ANOTACION: Nro 1" se encontró y "ANOTACION" aparece más de una vez
                 resultado = count_anotacion_nro_1 == 1 and count_anotacion == 1
-
+                
                 A_encontrado = False
                 
                 for page in reversed(pdf.pages):
@@ -217,15 +212,12 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         encontrado_an = False
                         break  # Si " X " ya se encontró, detén la iteración
 
-                    lines = page.extract_text().splitlines()
-                    #print (lines)
-
                     for line in reversed(lines):
                         if "https" in line or "Consultas VUR" in line:  # Ejemplo de condición
                             continue  # Si el número es par, pasa al siguiente número sin ejecutar el código restante
                         
-                        # if folio == "55165":
-                        #     print ("tons")
+                        if folio == "1123":
+                            print ("tons")
                         if "DE:" in line:           #para poder guardar un párrafo solo cuando tenga "DE:"
                             encontrado_de = True
                         elif any(keyword in line for keyword in anotacionesfuera) and ('SANEAMIENTO' not in line) and encontrado_nohaymas == False:      #CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION"
@@ -290,7 +282,16 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             texto_lineas.insert(0, line)
                             #print ("texto_lineas ->> ",texto_lineas)
                         elif encontrado_x and "ANOTACION:" in line:
-                            if encontrado_de:
+                            bool_ph = False
+                            
+                            if soloPH:
+                                phpruebaaa = "\n".join(texto_lineas)                                                                               #temporaaaaaaaal      
+                                if "HORIZONTAL" in phpruebaaa:                                                                                      #temporaaaaaaaal
+                                    bool_ph = True
+                            elif encontrado_de:
+                                    bool_ph = True
+                            
+                            if bool_ph:
                                 encontrado_an = True
                                 encontrado_de = False
                                 entrarsiosi = False
@@ -423,17 +424,41 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         
                         # if folio == "84642":
                         #     print ("hola")
-                        
+                        n_escritura_servidumbre = ""
+                        bool_serv = False
+                        cadena_spec = ""
                         for page in reversed(pdf.pages):
                             # Contar cuántas veces aparece "ANOTACION: Nro 1" y "ANOTACION" en todas las líneas
-                            lines = page.extract_text().splitlines()
                             for line in reversed(lines):
                                 for i in range(len(primer_nombre)):
                                     if (primer_nombre[i] in line or " "+segundo_nombre[i] in line) and (primer_apellido[i] in line or " "+segundo_apellido[i] in line):
                                         # Buscar cualquier número con más de dos dígitos en la línea
                                         matches = re.findall(r'\b\d{3,}\b', line)
                                         if matches and cedulas[i] == "":
-                                            cedulas[i] = matches[0]  # Asignar el primer número de más de dos dígitos como cédula                                
+                                            cedulas[i] = matches[0]  # Asignar el primer número de más de dos dígitos como cédula   
+                                
+                        for page in pdf.pages:
+                            # Contar cuántas veces aparece "ANOTACION: Nro 1" y "ANOTACION" en todas las líneas
+                            count_serv = 0
+                            for line in lines:
+                                if not bool_serv:
+                                    if "Doc: ESCRITURA" in line:
+                                        escrotura_match = re.search(r'ESCRITURA(.*?)(\d+):', line)
+                                        n_escrotora = escrotura_match.group(1).strip() if escrotura_match else None
+                                    if re.search(r"ESPECIFICACION: (.*?) SERVIDUMBRE", line, re.IGNORECASE):
+                                        tipo_servidumbre_match = re.search(r'ESPECIFICACION: (\d+) SERVIDUMBRE\s+(\w+\s+\w+\s+\w+\s+\w+)', line)                                    
+                                        tipo_servidumbre = tipo_servidumbre + tipo_servidumbre_match.group(2).strip() +"\n" if tipo_servidumbre_match and tipo_servidumbre_match.group(1).strip() else "ACUEDUCTO"
+                                    
+                                        n_escritura_servidumbre = n_escritura_servidumbre + n_escrotora + "\n"  
+                                        bool_serv = True
+                                        cadena_spec = line
+                                elif "PERSONAS QUE INTERVIENEN" not in line:
+                                    cadena_spec = cadena_spec + " "+ line
+                                else:
+                                    bool_serv = False
+                                        
+                                count_serv += 1
+                        
                         
                 else:
                     ph = 'COLOCAR DATOS MANUALMENTE'
