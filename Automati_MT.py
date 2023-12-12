@@ -26,9 +26,8 @@ HibernarPC =            True               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/08-12-2023/"
+carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/09-12-2023/"
 nombre_excel = 'Libro1.xlsx'
-
 indice_folio = "303-"
 
 
@@ -112,7 +111,7 @@ def crear_servidumbre(cadenaserv,cadena_escritura):
             wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
 
         
-        n_escritura,fecha = cadena_escritura.split(" DEL ")
+        n_escritura, fecha = cadena_escritura.lower().split(" del ")
         fecha = datetime.strptime(fecha, "%Y-%m-%d")
         date_doc = fecha.strftime('%d/%m/%Y')
         #date_doc = date_doc.strftime("%d/%m/%Y")
@@ -639,7 +638,7 @@ def crear_fuente(fuente,date_doc,ente,date_reg,n_fuente="SN"):
         "#W0030vACTENTEEMISOR": ente
     }
     if fuente == "RESOLUCION":
-        campos['#W0030vACTPRINCIPALDOCTIPOID'] = "Documento"
+        campos['#W0030vACTFUENTEADMINTIPOID'] = "Acto"
     
     # Llena los campos utilizando un bucle
     for selector, valor in campos.items():
@@ -701,7 +700,7 @@ def derechos(texto):
         combo = driver.find_element(By.CSS_SELECTOR, selector)
         select = Select(combo)
         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, f"{selector} option:nth-child({1 + 1})")))
-        if selector == "#W0070vACTDERECHOTIPOID" and ("COMPRAVENTA DERE" in texto or "FALSA TRADICION" in texto):
+        if selector == "#W0070vACTDERECHOTIPOID" and ("COMPRAVENTA DERE" in texto or "FALSA TRADICION" in texto or "ADJUDICACION" in texto):
             combo.send_keys("POSESION")
         time.sleep(3)
         select.select_by_index(1)
@@ -997,7 +996,7 @@ while True:
     except:
         driver.refresh()
 
-fila_a_extraer = 2  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
+fila_a_extraer = 3  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
 veces_repetir_folio = 5
 datos_titulos = datos.copy() 
 datos_titulosjuri = datosjuridicos.copy()

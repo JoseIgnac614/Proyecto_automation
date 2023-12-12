@@ -16,7 +16,7 @@ from selenium.common.exceptions import NoAlertPresentException
 
 nombrearchivo = "Libro1.xlsx"
 #directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
-directorio2 = "C:/Users/nacho/Downloads/Pruebas_autom/08-12-2023/"
+directorio2 = "C:/Users/nacho/Downloads/Pruebas_autom/09-12-2023/"
 directorio = directorio2+nombrearchivo
 
 DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
