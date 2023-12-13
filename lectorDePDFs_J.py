@@ -211,13 +211,13 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         encontrado_x = False
                         encontrado_an = False
                         break  # Si " X " ya se encontró, detén la iteración
-
+                    lines = page.extract_text().splitlines()                
                     for line in reversed(lines):
                         if "https" in line or "Consultas VUR" in line:  # Ejemplo de condición
                             continue  # Si el número es par, pasa al siguiente número sin ejecutar el código restante
                         
-                        if folio == "1123":
-                            print ("tons")
+                        # if folio == "1123":
+                        #     print ("tons")
                         if "DE:" in line:           #para poder guardar un párrafo solo cuando tenga "DE:"
                             encontrado_de = True
                         elif any(keyword in line for keyword in anotacionesfuera) and ('SANEAMIENTO' not in line) and encontrado_nohaymas == False:      #CANCELACION", "PARCIAL", "EMBARGO", "DEMANDA EN PROCESO", "ACLARACION", "FALSA TRADICION"
@@ -429,6 +429,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         cadena_spec = ""
                         for page in reversed(pdf.pages):
                             # Contar cuántas veces aparece "ANOTACION: Nro 1" y "ANOTACION" en todas las líneas
+                            lines = page.extract_text().splitlines()
                             for line in reversed(lines):
                                 for i in range(len(primer_nombre)):
                                     if (primer_nombre[i] in line or " "+segundo_nombre[i] in line) and (primer_apellido[i] in line or " "+segundo_apellido[i] in line):
@@ -439,15 +440,26 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                 
                         for page in pdf.pages:
                             # Contar cuántas veces aparece "ANOTACION: Nro 1" y "ANOTACION" en todas las líneas
+                            lines = page.extract_text().splitlines()
                             count_serv = 0
                             for line in lines:
                                 if not bool_serv:
                                     if "Doc: ESCRITURA" in line:
                                         escrotura_match = re.search(r'ESCRITURA(.*?)(\d+):', line)
                                         n_escrotora = escrotura_match.group(1).strip() if escrotura_match else None
-                                    if re.search(r"ESPECIFICACION: (.*?) SERVIDUMBRE", line, re.IGNORECASE):
-                                        tipo_servidumbre_match = re.search(r'ESPECIFICACION: (\d+) SERVIDUMBRE\s+(\w+\s+\w+\s+\w+\s+\w+)', line)                                    
-                                        tipo_servidumbre = tipo_servidumbre + tipo_servidumbre_match.group(2).strip() +"\n" if tipo_servidumbre_match and tipo_servidumbre_match.group(1).strip() else "ACUEDUCTO"
+                                    if re.search(r"ESPECIFICACION: (\d+) SERVIDUMBRE", line, re.IGNORECASE):
+                                        if n_escrotora == "584 del 1969-08-23":
+                                            print ("")
+                                        clean = re.sub(r'[.,()\s]+', ' ', line)
+                                        tipo_servidumbre_match = re.search(r'ESPECIFICACION: (\d+) SERVIDUMBRE\s+(\w+(?:\s+\w+)?)(?:\s+\([\w\s]+\))?', clean)                                    
+                                        if tipo_servidumbre_match and tipo_servidumbre_match.group(2).strip():
+                                            tipo_servidumbre = tipo_servidumbre + tipo_servidumbre_match.group(2).strip() +"\n"  
+                                        else:
+                                            tipo_servidumbre_match = re.search(r'ESPECIFICACION: (\d+) SERVIDUMBRE\s+(\w+(?:\s+\w+){0,3})(?:\s+\([\w\s]+\))?', clean)
+                                            if tipo_servidumbre_match and tipo_servidumbre_match.group(2).strip():
+                                                tipo_servidumbre = tipo_servidumbre + tipo_servidumbre_match.group(2).strip() +"\n"  
+                                            else:
+                                                tipo_servidumbre + "ACUEDUCTO" +"\n"
                                     
                                         n_escritura_servidumbre = n_escritura_servidumbre + n_escrotora + "\n"  
                                         bool_serv = True
