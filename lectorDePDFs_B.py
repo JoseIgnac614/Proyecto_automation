@@ -109,7 +109,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                             cadena = line.split("�REA")[1].strip()
                                             
                                         # Buscar las unidades de medida y sus valores numéricos                                                                                                            
-                                        matches = re.findall(r'\b(\d{1,3}(?:[\.,]\d{3})*(?:[\.,]\d+)?|\d+)[\s,]*(\w+)?', cadena)
+                                        matches = re.findall(r'\b(\d{4,}|\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?)\s*(\w+)?\b', cadena)
                                         for match in matches:
                                             valor, unidad = match
                                             #valor = valor.replace(".", "").replace(",", "")  # Eliminar puntos y comas como separadores de miles
@@ -122,8 +122,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                                 if len(partes[-1]) < 3:  # Si los últimos dígitos después del último punto son menos de 3
                                                     valor = partes[0].replace('.', '') + '.' + partes[-1]  # Mantener solo el punto que separa la parte decimal
                                             
-                                            if folio == '17649':
-                                                print ('')
+                                            # if folio == '17649':
+                                            #     print ('')
                                             
                                             if ',' in valor:
                                                 valor = valor.replace(',', '.')  # Reemplazar coma por punto para tratar como número decimal

@@ -15,18 +15,19 @@ import os
 import pygame
 import traceback
 
-pestañapredio  =        True                #DECIDE SI LLENAR PESTAÑA PREDIO O NO    
+pestañapredio  =        False                #DECIDE SI LLENAR PESTAÑA PREDIO O NO    
 
 llenarsolopredio =      1                   #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
 meterleservi =          True                #METERLE SERVIDUMBRE O NO???????????????    False para no, True para sí
-revisar_interesados =   True                #REVISAR INTERESADOSSS????????????? (Mirar cuales estan mal, eliminar, modificar)
+revisar_interesados =   False                #REVISAR INTERESADOSSS????????????? (Mirar cuales estan mal, eliminar, modificar)
+llenar_derechos     =   False
 modoqc              =   False                #Modidica interesados pero debe estar revisar_interesados activa, derecho se modifica,
 poneraprobado       =   False                #Poner estado en aprobado, False = lo pone en realizado
 HibernarPC =            True               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/09-12-2023/"
+carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/09-12-2023/"
 nombre_excel = 'Libro1.xlsx'
 indice_folio = "303-"
 
@@ -95,7 +96,11 @@ def quitar_acentos(texto):
     
     return texto
 
-def crear_servidumbre(cadenaserv,cadena_escritura):
+def crear_servidumbre(cadenaserv,cadena_escritura,cadena_area):
+    del_every_serv = True
+    
+    
+    
     
     wait = WebDriverWait(driver, 10)
     if cadenaserv != "NO":
@@ -110,17 +115,15 @@ def crear_servidumbre(cadenaserv,cadena_escritura):
             time.sleep(1)
             wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
 
-        
-        n_escritura, fecha = cadena_escritura.lower().split(" del ")
-        fecha = datetime.strptime(fecha, "%Y-%m-%d")
-        date_doc = fecha.strftime('%d/%m/%Y')
-        #date_doc = date_doc.strftime("%d/%m/%Y")
+
         
         wait = WebDriverWait(driver, 10)
         panel = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#Tab_TAB1Containerpanel5")))
         panel.click()
         time.sleep(1.5)
         wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#W0046vACTSERVTIPOID")))                        
+        
+        
         
         select_element = driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVTIPOID")  # Reemplaza el ID con el de tu select
 
@@ -129,100 +132,104 @@ def crear_servidumbre(cadenaserv,cadena_escritura):
         pattern = re.compile(r'_([^_]+)')
         selectores = [pattern.search(option.text).group(1) for option in options if pattern.search(option.text)]
 
-        textito = f"ESTABLECIDA MEDIANTE ESCRITURA {n_escritura} DE {date_doc}"
-        
-        dic_serv = {}
-        for j in selectores:
-            if j.upper() in cadenaserv:
-                dic_serv[j] = False
-        add_serv = dic_serv.copy()
-        servis_arreglar = []
         eliminar_serv = []
-        
-        avisounavez = True
-        existe = False        
-        
+        avisounavez = False    
+        avisounavez2 = False   
         elementos_tr = driver.find_elements(By.CSS_SELECTOR, 'tr[id^="W0046GridContainerRow_"]')
         n_elementos = len(elementos_tr)
         
-    
-        # n_ser_encon = 1000000
-        existe = False
-        for k in range(n_elementos):                
-            try:
-                elemento_span = driver.find_element(By.ID,f"span_W0046ACTSERVTIPOID_000{k+1}")
-                valor_seleccionado = elemento_span.text
-                
-                elemento_span2 = driver.find_element(By.ID,f"span_W0046ACTSERVIDUMBREOBS_000{k+1}")
-                # Obtener el texto dentro del elemento
-                observacion = elemento_span2.text
-            except:
-                valor_seleccionado = ""
-                observacion = ""
+        list_servis = cadenaserv.split("\n")
+        list_escritura = cadena_escritura.split("\n")
+        list_area = cadena_area.split("\n")
+        
+        
+        for servis, escri_servi, area_servi in zip(list_servis,list_escritura,list_area):
+            textito = ''
+            dic_serv = {}
+            for j in selectores:
+                if j.upper() in servis:
+                    dic_serv[j] = False
+
             
-            for a in add_serv:
-                add_serv[a] = False
+            n_escritura, fecha = escri_servi.lower().split(" del ")
+            fecha = datetime.strptime(fecha, "%Y-%m-%d")
+            date_doc = fecha.strftime('%d/%m/%Y')
+            #date_doc = date_doc.strftime("%d/%m/%Y")
             
-            for index,i in enumerate(dic_serv.keys()):
-                if i in valor_seleccionado and str(n_escritura) in observacion and dic_serv[i] != True:
+            primero = False
+            for arreglo in dic_serv:
+                if dic_serv[arreglo] == False:
+                    if not primero:
+                        primero = True
+                        continue
+                    else:
+                        textito = f"JUNTO A UNA SERVIDUMBRE DE {arreglo} "
+            textito = textito + f"ESTABLECIDA(S) MEDIANTE ESCRITURA {n_escritura} DE {date_doc}"
+            if area_servi != 'NO':
+                textito = textito + f" CON UN AREA DE {area_servi} M2"
+            
+            # n_ser_encon = 1000000
+            if not del_every_serv:
+                add_serv = dic_serv.copy()
+                for k in range(n_elementos):                
+                    try:
+                        elemento_span = driver.find_element(By.ID,f"span_W0046ACTSERVTIPOID_000{k+1}")
+                        valor_seleccionado = elemento_span.text
+                        
+                        elemento_span2 = driver.find_element(By.ID,f"span_W0046ACTSERVIDUMBREOBS_000{k+1}")
+                        # Obtener el texto dentro del elemento
+                        observacion = elemento_span2.text
+                    except:
+                        valor_seleccionado = ""
+                        observacion = ""
                     
-                    dic_serv[i] = True
-                    add_serv[i] = True
-                
-                # elif dic_serv[i]:
-                #     eliminar_serv.append(k)
-                elif all(valor == False for valor in add_serv.values()) and index == len(dic_serv) - 1:
-                    eliminar_serv.append(k)
-                    cambiosQC.value = cambiosQC.value + '\nServidumbre modificado'
-                    # elif str(n_escritura) not in observacion:
-                    #     cambiosQC.value = cambiosQC.value + '\nObservacion de servidumbre añadida'
-            
-            # if i not in valor_seleccionado or existe:
-            #     if avisounavez:
-            #         cambiosQC.value = cambiosQC.value + '\nServidumbre añadido'
-            #         servis_arreglar.append(i)
-            #     if not existe:
-            #         dic_serv[k] = False
-            #     else:
-            #         dic_serv[k] = True
-            #     avisounavez = False
-            # elif str(n_escritura) not in observacion:
-            #     if avisounavez:
-            #         cambiosQC.value = cambiosQC.value + '\nObservacion de servidumbre añadida'
-            #         servis_arreglar.append(i)
-            #     dic_serv[k] = True
-            #     avisounavez = False
-            # else:
-            #     existe = True
-            
-                # for o in servis:
-                #     if o in valor_seleccionado:
-                #         existe = True
-                #         break  # Si deseas detener la búsqueda después de encontrar la primera coincidencia
-        sustractor = 0
-        for clave in eliminar_serv:
+                    for a in add_serv:
+                        add_serv[a] = False
+                    
+                    for index,i in enumerate(dic_serv.keys()):
+                        if i in valor_seleccionado and str(n_escritura) in observacion and dic_serv[i] != True:
+                            
+                            dic_serv[i] = True
+                            add_serv[i] = True
+                        
+                        # elif dic_serv[i]:
+                        #     eliminar_serv.append(k)
+                        elif all(valor == False for valor in add_serv.values()) and index == len(dic_serv) - 1:
+                            eliminar_serv.append(k)
+                            cambiosQC.value = cambiosQC.value + '\nServidumbre modificado'
+            elif not avisounavez:
+                for k in range(n_elementos):  
+                    for index,i in enumerate(dic_serv.keys()):
+                            eliminar_serv.append(k)
+                            cambiosQC.value = cambiosQC.value + '\nServidumbre modificado'
+                avisounavez = True
 
-            try:
-                driver.find_element(By.CSS_SELECTOR, f"#span_W0046ACTSERVTIPOID_000{clave+1 - sustractor}")
-                time.sleep(1)
-                driver.find_element(By.CSS_SELECTOR, f"#W0046vDELETE_000{clave+1 - sustractor}").click()
-                time.sleep(1)
-                wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
-            except:
-                print ("")
-            sustractor = sustractor + 1
+            if not avisounavez2:
+                sustractor = 0
+                for clave in eliminar_serv:
 
-        for arreglo in dic_serv:
-            if dic_serv[arreglo] == False:
-                time.sleep(1)
-                select_element.send_keys("Servidumbre_"+arreglo)
-                time.sleep(1)
-                driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVIDUMBREOBS").send_keys(textito)
-                time.sleep(1)
-                driver.find_element(By.CSS_SELECTOR, "#W0046ENTER").click()
-                wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
-                time.sleep(1)
-                select_element = driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVTIPOID")
+                    try:
+                        driver.find_element(By.CSS_SELECTOR, f"#span_W0046ACTSERVTIPOID_000{clave+1 - sustractor}")
+                        time.sleep(1)
+                        driver.find_element(By.CSS_SELECTOR, f"#W0046vDELETE_000{clave+1 - sustractor}").click()
+                        time.sleep(1)
+                        wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
+                    except:
+                        print ("")
+                    sustractor = sustractor + 1
+                avisounavez2 = True
+
+            for arreglo in dic_serv:
+                if dic_serv[arreglo] == False:
+                    time.sleep(1)
+                    select_element.send_keys("Servidumbre_"+arreglo)
+                    time.sleep(1)
+                    driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVIDUMBREOBS").send_keys(textito)
+                    time.sleep(1)
+                    driver.find_element(By.CSS_SELECTOR, "#W0046ENTER").click()
+                    wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
+                    time.sleep(1)
+                    select_element = driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVTIPOID")
 
             
                 
@@ -945,6 +952,7 @@ datosjuridicos = {
     'Folio': None,
     'Servidumbre': None,
     'Escr. Serv': None,
+    'Area Serv': None,
     'Fecha registro': None,
     'Fecha documento': None,
     'Fuente adm.': None,
@@ -1159,8 +1167,8 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                         #a = 1/0
                         
                     if juridico != False and not flagaprob: 
-                        if meterleservi == True:
-                            crear_servidumbre(datosjuridicos["Servidumbre"],datosjuridicos["Escr. Serv"])
+                        if meterleservi == True and datosjuridicos["Servidumbre"] != '':
+                            crear_servidumbre(datosjuridicos["Servidumbre"],datosjuridicos["Escr. Serv"],datosjuridicos["Area Serv"])
 
                         if mod_fuente:
 
@@ -1520,7 +1528,8 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                     if any(buscar_malos):
                                         raise Exception('ERROR: Última comprobación de interesados, fallida')
                         #if modoqc:
-                        derechos(datosjuridicos["Texto"])
+                        if llenar_derechos:
+                            derechos(datosjuridicos["Texto"])
                         wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
                         driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel1").click()
                         time.sleep(0.5)

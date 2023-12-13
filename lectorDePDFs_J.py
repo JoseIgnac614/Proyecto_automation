@@ -7,7 +7,7 @@ import pandas as pd
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/09-12-2023/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/09-12-2023/"
 
 # Nombre del archivo CSV de salida
 archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
@@ -128,6 +128,36 @@ anotacionessiosi = [
                     # "HORIZONTAL"   #TEMPORAAAAAAAL PARA PROPIEDAD HORIZONTAL    
                     ]
 
+conversiones = {
+    "HAS": 10000,  # 1 Ha = 10,000 m2
+    "HECT": 10000,
+    "HTRS": 10000,
+    "HTS": 10000,
+    "HA": 10000,
+    "HECTAREAS": 10000,
+    "M2": 1,        # 1 m2 = 1 m2
+    "MTS2": 1,
+    "METROS2": 1,
+    "MTRS2": 1,
+    "METROS C":1
+}
+
+servidumbres = [
+    "Acueducto",
+    "Aguas",
+    "Aire",
+    "Alcantarillado",
+    "Energia",
+    "Gas",
+    "Legal",
+    "Luz",
+    "Medianeria",
+    "Minera",
+    "Oleoducto",
+    "Transito"
+]
+servidumbres = [s.upper() for s in servidumbres]
+
 delimitado_cedula = [" CC "," TI ", " NIT. ","(ME X","(MENOR) X"," (MENOR) X", " X", " # "]
 
 count_pdfs = 0
@@ -162,6 +192,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 # if folio == "33226":
                 #     print ("Hola")
                 tipo_servidumbre = ""
+                area_servidumbre = ""
                 compraventa = -10000000            #Para agregar una anotacion solo cuando salga esta palabra
                 sianotacion = False
                 pag_encontrado = ""             #para guardar la página en la que se encontró la anotacion clave
@@ -437,7 +468,9 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                         matches = re.findall(r'\b\d{3,}\b', line)
                                         if matches and cedulas[i] == "":
                                             cedulas[i] = matches[0]  # Asignar el primer número de más de dos dígitos como cédula   
-                                
+                        
+                        
+                            
                         for page in pdf.pages:
                             # Contar cuántas veces aparece "ANOTACION: Nro 1" y "ANOTACION" en todas las líneas
                             lines = page.extract_text().splitlines()
@@ -448,27 +481,88 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                         escrotura_match = re.search(r'ESCRITURA(.*?)(\d+):', line)
                                         n_escrotora = escrotura_match.group(1).strip() if escrotura_match else None
                                     if re.search(r"ESPECIFICACION: (\d+) SERVIDUMBRE", line, re.IGNORECASE):
-                                        if n_escrotora == "584 del 1969-08-23":
+                                        coincidencias = []
+                                        bool_found = False
+                                        if n_escrotora == "1237 del 2020-10-13":
                                             print ("")
                                         clean = re.sub(r'[.,()\s]+', ' ', line)
-                                        tipo_servidumbre_match = re.search(r'ESPECIFICACION: (\d+) SERVIDUMBRE\s+(\w+(?:\s+\w+)?)(?:\s+\([\w\s]+\))?', clean)                                    
+                                        tipo_servidumbre_match = re.search(r'ESPECIFICACION: (\d+) SERVIDUMBRE\s+(\w+(?:\s+\w+){0,4})(?:\s+\([\w\s]+\))?', clean)                                  
                                         if tipo_servidumbre_match and tipo_servidumbre_match.group(2).strip():
-                                            tipo_servidumbre = tipo_servidumbre + tipo_servidumbre_match.group(2).strip() +"\n"  
+                                            bool_found = True
                                         else:
-                                            tipo_servidumbre_match = re.search(r'ESPECIFICACION: (\d+) SERVIDUMBRE\s+(\w+(?:\s+\w+){0,3})(?:\s+\([\w\s]+\))?', clean)
+                                            tipo_servidumbre_match = re.search(r'ESPECIFICACION: (\d+) SERVIDUMBRE\s+(\w+(?:\s+\w+)?)(?:\s+\([\w\s]+\))?', clean)
                                             if tipo_servidumbre_match and tipo_servidumbre_match.group(2).strip():
-                                                tipo_servidumbre = tipo_servidumbre + tipo_servidumbre_match.group(2).strip() +"\n"  
+                                                bool_found = True
                                             else:
                                                 tipo_servidumbre + "ACUEDUCTO" +"\n"
-                                    
+
+                                        if bool_found:                                         
+                                            # Dividir la cadena en palabras
+                                            palabras = tipo_servidumbre_match.group(2).strip().split()
+
+                                            # Iterar sobre las palabras y verificar si coinciden con las de la lista
+                                            for palabra in palabras:
+                                                for servi in servidumbres:
+                                                    if servi in palabra:
+                                                        if servi == "GAS":
+                                                            coincidencias.append("GASODUCTO")    
+                                                        else:
+                                                            coincidencias.append(servi)
+                                            # Crear una variable nueva concatenando las palabras coincidentes
+                                            nueva_variable = " Y ".join(coincidencias)
+                                            tipo_servidumbre = tipo_servidumbre + nueva_variable +"\n"  
+                                        
                                         n_escritura_servidumbre = n_escritura_servidumbre + n_escrotora + "\n"  
                                         bool_serv = True
                                         cadena_spec = line
                                 elif "PERSONAS QUE INTERVIENEN" not in line:
-                                    cadena_spec = cadena_spec + " "+ line
+                                    if "https" not in line or "Consultas VUR" not in line:
+                                        cadena_spec = cadena_spec + " "+ line
                                 else:
                                     bool_serv = False
+                                    cadena = re.sub(r'\([^)]*\)', '', cadena_spec)
+                                    total_m2 = None
+                                    valor = None
+                                    cadena_limpia = re.sub(r'\([^)]*\)', '', cadena)
+                                    palabras = cadena_limpia.split()
+                                    cadena_limpia = ' '.join(palabras[-5:])
+
+                                    # Buscar las unidades de medida y sus valores numéricos                                                                                                            
+                                    matches = re.findall(r'\b(\d{4,}(?:[\.,]\d+)?|\d{1,3}(?:[.,]\d{3})*(?:[.,]?\d+)?)\s*(\w+)?\b', cadena_limpia)
+
+                                    for match in matches:
+                                        valor, unidad = match
+
+                                        # Determinar si el número debe ser tratado como decimal o número de miles
+                                        if ',' in valor and '.' in valor:
+                                            valor = valor.replace('.', '') 
+                                        elif valor.count('.') > 1:
+                                            partes = valor.rsplit('.', 1)  # Dividir la cadena en dos partes desde el último punto
+                                            if len(partes[-1]) < 3:  # Si los últimos dígitos después del último punto son menos de 3
+                                                valor = partes[0].replace('.', '') + '.' + partes[-1]  # Mantener solo el punto que separa la parte decimal
                                         
+                                        # if folio == '17649':
+                                        #     print ('')
+                                        
+                                        if ',' in valor:
+                                            valor = valor.replace(',', '.')  # Reemplazar coma por punto para tratar como número decimal
+                                        elif '.' in valor and len(valor.split('.')[-1]) == 3:
+                                            valor = valor.replace('.', '')  # Tratar como número de miles si tiene tres dígitos después del punto
+
+                                        if unidad in conversiones:
+                                            valor_m2 = float(valor) * conversiones[unidad]
+                                            # print ('')
+                                            if total_m2 is None:
+                                                total_m2 = valor_m2
+                                            else:
+                                                total_m2 += valor_m2
+                                                break  # Romper el bucle si ya se encontró el valor total en m2
+                                            if unidad == "M2" or unidad in "MTS2":
+                                                break
+                                    if total_m2 != None: 
+                                        area_servidumbre = area_servidumbre + str(total_m2) + "\n"
+                                    else:
+                                        area_servidumbre = area_servidumbre + "NO" + "\n"
                                 count_serv += 1
                         
                         
@@ -481,7 +575,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 
                     # Agregar encabezados si el archivo está vacío
                     if os.path.getsize(archivo_csv) == 0:
-                        csv_writer.writerow(["Nombre de archivo","Folio", "Servidumbre","Escr. Serv", "PH","Texto", "Fecha registro","Fecha documento","Fuente adm.","N. Fuente","Ente Em.","Porcentajes","Cédulas", "Primer Nombre", "Segundo Nombre", "Primer Apellido", "Segundo Apellido","Género"])
+                        csv_writer.writerow(["Nombre de archivo","Folio", "Servidumbre","Escr. Serv","Area Serv", "PH","Texto", "Fecha registro","Fecha documento","Fuente adm.","N. Fuente","Ente Em.","Porcentajes","Cédulas", "Primer Nombre", "Segundo Nombre", "Primer Apellido", "Segundo Apellido","Género"])
                     
                     if primer_nombre == []:
                         print ("No hay nadaaaaaaa, archivo: ", archivo_pdf)
@@ -494,9 +588,9 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         count_pdfs += 1
                     while i < len(nombres):
                         if i == 0:
-                            csv_writer.writerow([archivo_pdf,folio, tipo_servidumbre,n_escritura_servidumbre, ph, texto_celda,date_registro,date_documento,escritura,n_escritura,ente,porcentajes[i], cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i],genero[i]])
+                            csv_writer.writerow([archivo_pdf,folio, tipo_servidumbre,n_escritura_servidumbre, area_servidumbre, ph, texto_celda,date_registro,date_documento,escritura,n_escritura,ente,porcentajes[i], cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i],genero[i]])
                         else:
-                            csv_writer.writerow(["", folio,"","","","", "","","","", "",porcentajes[i],cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i],genero[i]])
+                            csv_writer.writerow(["", folio,"","","","", "","","","", "","",porcentajes[i],cedulas[i], primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i],genero[i]])
                         i += 1
 
                 # Limpiar las listas para el próximo archivo PDF
