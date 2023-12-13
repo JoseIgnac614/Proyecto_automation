@@ -27,7 +27,7 @@ HibernarPC =            True               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/09-12-2023/"
+carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/09-12-2023/"
 nombre_excel = 'Libro1.xlsx'
 indice_folio = "303-"
 
@@ -107,8 +107,20 @@ def crear_servidumbre(cadenaserv,cadena_escritura,cadena_area):
         time.sleep(1)
         wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#Tab_TAB1Containerpanel1"))).click()
         time.sleep(1)
+        
+        checkbox = driver.find_element(By.CSS_SELECTOR, "#W0014vSERVIDUMBRE")
+        
+        if checkbox.is_selected():
+            # checkbox = driver.find_element(By.CSS_SELECTOR, "#W0014vSERVIDUMBRE")      # BOTON DE QUE NO HAY AREA CATASTRAL
+            checkbox.click()
+            time.sleep(1)
+            driver.find_element(By.CSS_SELECTOR, "#W0014GUARDAR").click()
+            time.sleep(1)
+            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
+            # time.sleep(2)
+
         checkbox = driver.find_element(By.CSS_SELECTOR, "#W0014vSERVIDUMBRE")      # BOTON DE QUE NO HAY AREA CATASTRAL
-        if not checkbox.is_selected():
+        if not checkbox.is_selected():            
             checkbox.click()
             time.sleep(1)
             driver.find_element(By.CSS_SELECTOR, "#W0014GUARDAR").click()
@@ -163,8 +175,8 @@ def crear_servidumbre(cadenaserv,cadena_escritura,cadena_area):
                         primero = True
                         continue
                     else:
-                        textito = f"JUNTO A UNA SERVIDUMBRE DE {arreglo} "
-            textito = textito + f"ESTABLECIDA(S) MEDIANTE ESCRITURA {n_escritura} DE {date_doc}"
+                        textito = f"CON SERV. DE {arreglo} "
+            textito = textito + f"ESTABLECIDA(S) POR ESCRITURA {n_escritura} DE {date_doc}"
             if area_servi != 'NO':
                 textito = textito + f" CON UN AREA DE {area_servi} M2"
             
@@ -226,14 +238,11 @@ def crear_servidumbre(cadenaserv,cadena_escritura,cadena_area):
                     time.sleep(1)
                     driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVIDUMBREOBS").send_keys(textito)
                     time.sleep(1)
+                    wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#W0046vACTSERVTIPOID")))
                     driver.find_element(By.CSS_SELECTOR, "#W0046ENTER").click()
                     wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
                     time.sleep(1)
                     select_element = driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVTIPOID")
-
-            
-                
-    
 
 def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
     # Abre el archivo de Excel R1
@@ -1004,7 +1013,7 @@ while True:
     except:
         driver.refresh()
 
-fila_a_extraer = 3  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
+fila_a_extraer = 2  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
 veces_repetir_folio = 5
 datos_titulos = datos.copy() 
 datos_titulosjuri = datosjuridicos.copy()
