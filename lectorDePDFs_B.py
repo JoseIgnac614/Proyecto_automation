@@ -7,7 +7,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 # Carpeta que contiene las subcarpetas con los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/09-12-2023/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/13-12-2023/"
 # carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/hola/"
 
 # Nombre del archivo CSV de salida
@@ -235,12 +235,17 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                     info_dict["Área de Terreno"] = total_m2
                                     break
                             # break
+                        coef_match = re.search(r'coeficiente\s+de\s+(\d[\d.,]*)', textarea, re.IGNORECASE)
+
+                        if coef_match:
+                            info_dict["Coeficiente"] = coef_match.group(1)
                                 
                         if total_m2 != None: 
                             info_dict["Área de Terreno"] = str(total_m2)
                             break
                         else:
                             bool_area = False
+                        
                     
                     if not bool_area:
                         areas = ["area","�REA","Metros:", "Centimietros:"]
@@ -256,15 +261,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                     posicion2 = area_match[1]
                             elif area_match:    
                                 posicion2 = area_match.group(2)
-                            #area_matches = re.findall(rf"({i})\D*(\d+(\.\d+)?)", textarea, re.IGNORECASE)
-                            # for match in area_matches:
-                            #     print(match)
-                            # # if archivo_pdf == "148-50746 B.pdf":
-                            # #     print (re.search(rf"({i})\s+(\d+(\.\d+)?)", text))
-                            # if area_match:
-                            #     hola1 = area_match.group(0)
-                            #     hola2 = area_match.group(1)
-                            #     hola3 = area_match.group(2)
+        
 
                             if area_match and str(posicion2) != "0" and str(posicion2) != "":
                                 if i == "Centimietros:":
@@ -277,14 +274,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                 #print("Área de Terreno:", area_terreno)  # Agrega esta línea para depura
                                 info_dict["Área de Terreno"] = area_terreno
                                 
-                       
-
-                    # Buscar la palabra "Servidumbre"
-                    servidumbre_match = re.search(r"servidumbre", text, re.IGNORECASE)
-                    if servidumbre_match:
-                        info_dict["Servidumbre"] = "SI"
-                    else:
-                        info_dict["Servidumbre"] = "NO"
+                    
  
                     # Busca "Tipo de Predio: " y captura el próximo carácter en una variable
                     tipo_predio_match = re.search(r"Tipo de Predio: (\S)", text)
@@ -322,7 +312,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
 #print (info_dict)
 # Guardar la información en un archivo CSV
 with open(archivo_csv, "w", newline="", encoding="utf-8") as csv_file:
-    columnas = ["Nombre de Archivo","Folio", "Matrícula matriz","Matrículas derivadas", "Área de Terreno", "Servidumbre", "Tipo Predio", "Dirección", "Dirección Corregida"]
+    columnas = ["Nombre de Archivo","Folio", "Matrícula matriz","Matrículas derivadas", "Área de Terreno", "Coeficiente", "Tipo Predio", "Dirección", "Dirección Corregida"]
     csv_writer = csv.DictWriter(csv_file, fieldnames=columnas)
     csv_writer.writeheader()
 

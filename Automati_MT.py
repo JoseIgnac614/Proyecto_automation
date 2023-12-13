@@ -15,19 +15,19 @@ import os
 import pygame
 import traceback
 
-pestañapredio  =        False                #DECIDE SI LLENAR PESTAÑA PREDIO O NO    
+pestañapredio  =        True                #DECIDE SI LLENAR PESTAÑA PREDIO O NO    
 
 llenarsolopredio =      1                   #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
 meterleservi =          True                #METERLE SERVIDUMBRE O NO???????????????    False para no, True para sí
-revisar_interesados =   False                #REVISAR INTERESADOSSS????????????? (Mirar cuales estan mal, eliminar, modificar)
-llenar_derechos     =   False
+revisar_interesados =   True                #REVISAR INTERESADOSSS????????????? (Mirar cuales estan mal, eliminar, modificar)
+llenar_derechos     =   True
 modoqc              =   False                #Modidica interesados pero debe estar revisar_interesados activa, derecho se modifica,
 poneraprobado       =   False                #Poner estado en aprobado, False = lo pone en realizado
 HibernarPC =            True               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/09-12-2023/"
+carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/13-12-2023/"
 nombre_excel = 'Libro1.xlsx'
 indice_folio = "303-"
 
@@ -102,7 +102,7 @@ def crear_servidumbre(cadenaserv,cadena_escritura,cadena_area):
     
     
     
-    wait = WebDriverWait(driver, 10)
+    wait = WebDriverWait(driver, 15)
     if cadenaserv != "NO":
         time.sleep(1)
         wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#Tab_TAB1Containerpanel1"))).click()
@@ -115,7 +115,8 @@ def crear_servidumbre(cadenaserv,cadena_escritura,cadena_area):
             checkbox.click()
             time.sleep(1)
             driver.find_element(By.CSS_SELECTOR, "#W0014GUARDAR").click()
-            time.sleep(1)
+            time.sleep(2)
+            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask")))
             wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
             # time.sleep(2)
 
@@ -124,12 +125,11 @@ def crear_servidumbre(cadenaserv,cadena_escritura,cadena_area):
             checkbox.click()
             time.sleep(1)
             driver.find_element(By.CSS_SELECTOR, "#W0014GUARDAR").click()
-            time.sleep(1)
+            time.sleep(2)
+            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask")))
             wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
-
-
         
-        wait = WebDriverWait(driver, 10)
+        wait = WebDriverWait(driver, 15)
         panel = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#Tab_TAB1Containerpanel5")))
         panel.click()
         time.sleep(1.5)
@@ -230,19 +230,19 @@ def crear_servidumbre(cadenaserv,cadena_escritura,cadena_area):
                         print ("")
                     sustractor = sustractor + 1
                 avisounavez2 = True
-
-            for arreglo in dic_serv:
-                if dic_serv[arreglo] == False:
-                    time.sleep(1)
-                    select_element.send_keys("Servidumbre_"+arreglo)
-                    time.sleep(1)
-                    driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVIDUMBREOBS").send_keys(textito)
-                    time.sleep(1)
-                    wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#W0046vACTSERVTIPOID")))
-                    driver.find_element(By.CSS_SELECTOR, "#W0046ENTER").click()
-                    wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
-                    time.sleep(1)
-                    select_element = driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVTIPOID")
+            
+            arreglo = list(dic_serv.keys())[0]
+            time.sleep(3)
+            select_element.send_keys("Servidumbre_"+arreglo)
+            time.sleep(1)
+            driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVIDUMBREOBS").send_keys(textito)
+            time.sleep(1)
+            wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#W0046vACTSERVTIPOID")))
+            driver.find_element(By.CSS_SELECTOR, "#W0046ENTER").click()
+            time.sleep(2)
+            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
+            time.sleep(1)
+            select_element = driver.find_element(By.CSS_SELECTOR,"#W0046vACTSERVTIPOID")
 
 def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
     # Abre el archivo de Excel R1
@@ -551,7 +551,7 @@ def ajustar_numero(cadena):
         cadena += ',00'
     return cadena
         
-def llenar_predio(hojainfo,mat_matriz,direccion,areaTerr):
+def llenar_predio(hojainfo,mat_matriz,direccion,areaTerr,coef):
     wait = WebDriverWait(driver, 10)
     matricula = driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel1")
     matricula.click()
@@ -618,8 +618,15 @@ def llenar_predio(hojainfo,mat_matriz,direccion,areaTerr):
     # Añade un nuevo dato a la celda a la derecha de "Dirección Corregida"
     nueva_celda = hojainfo.cell(row=fila_a_extraer, column=columna_max + 1)
     nueva_celda.value = elemento.get_attribute("value")  # Reemplaza con el valor que desees
-    
+    coef_exist = driver.find_element(By.CSS_SELECTOR, "#span_W0014vACTPREDIOCOEPRE")
+    text_coef = coef_exist.text
     driver.find_element(By.CSS_SELECTOR, "#W0014GUARDAR").click()
+    
+    if coef != '' and '0,00' in text_coef:
+        oe = driver.find_element(By.CSS_SELECTOR, "#W0014vACTPREDIOCOEPRE")
+        time.sleep(1)
+        oe.send_keys(coef)
+        driver.find_element(By.CSS_SELECTOR, "#W0014GUARDAR").click()
     
     time.sleep(1)
     wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
@@ -952,6 +959,7 @@ def buscar_inter_malo(driver, datosjuridicos, sininteres, unaveznomas,n_ciclo,ma
 # Crea un diccionario para mapear los nombres de encabezados a variables
 datos = {
     'Folio': None,
+    'Coeficiente': None,
     'Matrícula matriz': None,
     'Área de Terreno': None,
     'Dirección Corregida': None,
@@ -1101,14 +1109,15 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
 
                 # Define la cadena de caracteres que deseas buscar.
                 cadena_busqueda = "Unidad_Predial"
-
+                
+                llenar_predio(hoja,datos['Matrícula matriz'],datos['Dirección Corregida'],datos['Área de Terreno'],datos["Coeficiente"])
                 # Comprueba si la cadena de búsqueda está presente en el texto.
-                if pestañapredio:
-                    if cadena_busqueda not in texto_elemento:
-                        llenar_predio(hoja,datos['Matrícula matriz'],datos['Dirección Corregida'],datos['Área de Terreno'])
-                    else:
-                        nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+ 2)
-                        nueva_celda.value = "Es PH, no se modifica"
+                # if pestañapredio:
+                #     if cadena_busqueda not in texto_elemento:
+                #         llenar_predio(hoja,datos['Matrícula matriz'],datos['Dirección Corregida'],datos['Área de Terreno'],datos["Coeficiente"])
+                #     else:
+                #         nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+ 2)
+                #         nueva_celda.value = "Es PH, no se modifica"
 
                 if llenarsolopredio:
                     folio_selec = datos['Folio']
