@@ -27,7 +27,7 @@ HibernarPC =            True               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/13-12-2023/"
+carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/13-12-2023/"
 nombre_excel = 'Libro1.xlsx'
 indice_folio = "303-"
 
@@ -394,6 +394,9 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
             posicion_id += 1        
                             #print(nombre)   #Saber qué nombres se enlistan
                     #print (cuantos)         #Saber cuantos nombres hay listados
+        if cedula == None:
+            cedula = ""
+        
         if same_nombres == 0 and cedula == "":
             fix_ced = True
         
@@ -619,10 +622,12 @@ def llenar_predio(hojainfo,mat_matriz,direccion,areaTerr,coef):
     nueva_celda = hojainfo.cell(row=fila_a_extraer, column=columna_max + 1)
     nueva_celda.value = elemento.get_attribute("value")  # Reemplaza con el valor que desees
     coef_exist = driver.find_element(By.CSS_SELECTOR, "#span_W0014vACTPREDIOCOEPRE")
+    coef_exist2 = driver.find_element(By.CSS_SELECTOR, "#W0014vACTPREDIOCOEPRE")
+    text_coef2 = coef_exist2.get_attribute("value")
     text_coef = coef_exist.text
     driver.find_element(By.CSS_SELECTOR, "#W0014GUARDAR").click()
     
-    if coef != '' and '0,00' in text_coef:
+    if coef != '' and ('0,00' in text_coef or '0,00' in text_coef2):
         oe = driver.find_element(By.CSS_SELECTOR, "#W0014vACTPREDIOCOEPRE")
         time.sleep(1)
         oe.send_keys(coef)
@@ -1110,14 +1115,14 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                 # Define la cadena de caracteres que deseas buscar.
                 cadena_busqueda = "Unidad_Predial"
                 
-                llenar_predio(hoja,datos['Matrícula matriz'],datos['Dirección Corregida'],datos['Área de Terreno'],datos["Coeficiente"])
+                
                 # Comprueba si la cadena de búsqueda está presente en el texto.
-                # if pestañapredio:
-                #     if cadena_busqueda not in texto_elemento:
-                #         llenar_predio(hoja,datos['Matrícula matriz'],datos['Dirección Corregida'],datos['Área de Terreno'],datos["Coeficiente"])
-                #     else:
-                #         nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+ 2)
-                #         nueva_celda.value = "Es PH, no se modifica"
+                if pestañapredio:
+                    if cadena_busqueda in texto_elemento and datos["Coeficiente"] == "":
+                        nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+ 2)
+                        nueva_celda.value = "Es PH, y no hay coeficiente"
+                    else:
+                        llenar_predio(hoja,datos['Matrícula matriz'],datos['Dirección Corregida'],datos['Área de Terreno'],datos["Coeficiente"])                                                
 
                 if llenarsolopredio:
                     folio_selec = datos['Folio']

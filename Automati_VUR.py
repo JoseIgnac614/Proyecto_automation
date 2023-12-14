@@ -15,11 +15,15 @@ import traceback
 from selenium.common.exceptions import NoAlertPresentException
 
 nombrearchivo = "Libro1.xlsx"
+usuario = 'nacho'
+carpetafolio = '13-12-2023'
+
+
 #directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
-directorio2 = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/13-12-2023/"
+directorio2 = f"C:/Users/{usuario}/Downloads/Pruebas_autom/{carpetafolio}/"
 directorio = directorio2+nombrearchivo
 
-DirDescargasVUR = 'C:\\Users\\PORTATIL LENOVO\\Downloads\\'
+DirDescargasVUR = f'C:\\Users\\{usuario}\\Downloads\\'
 #DirDescargasVUR = 'C:\\Users\\nacho\\Downloads\\'
 
 

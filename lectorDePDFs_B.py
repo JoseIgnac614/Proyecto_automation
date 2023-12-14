@@ -7,7 +7,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 # Carpeta que contiene las subcarpetas con los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/13-12-2023/"
+carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/13-12-2023/"
 # carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/hola/"
 
 # Nombre del archivo CSV de salida
@@ -89,7 +89,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             for line in reversed(lines):
                                 conserv = False                         #Para ver si es una area pero de servidumbre
                                 
-                                if "PARTE RESTANTE" in line or "AREA" in line or "�REA" in line:
+                                if "PARTE RESTANTE" in line or "AREA " in line or "�REA " in line:
                                     
                                     # Definir los límites
                                     inicio = max(0, count - 2)  # Asegurarse de no ir más allá del inicio de la lista
@@ -170,7 +170,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         matriculas_derivadas = matriculas_derivadas_match.group(1).strip().split() if matriculas_derivadas_match.group(1) else []
                         info_dict["Matrículas derivadas"] = " ".join(matriculas_derivadas) if matriculas_derivadas else None
                     
-                    # if folio == '5760':
+                    # if folio == '35805':
                     #     print ('hola')
                     #Extraer número después de "Area de terreno Hectareas:" o "AREA:"
                     area_terreno = "" 
@@ -235,10 +235,10 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                     info_dict["Área de Terreno"] = total_m2
                                     break
                             # break
-                        coef_match = re.search(r'coeficiente\s+de\s+(\d[\d.,]*)', textarea, re.IGNORECASE)
-
+                        coef_match = re.search(r'coeficiente.*?(\d[\d.,]*)\s*%', textarea, re.IGNORECASE)
                         if coef_match:
-                            info_dict["Coeficiente"] = coef_match.group(1)
+                            coeficien = coef_match.group(1).replace('.', ',')
+                            info_dict["Coeficiente"] = coeficien
                                 
                         if total_m2 != None: 
                             info_dict["Área de Terreno"] = str(total_m2)
@@ -250,7 +250,11 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     if not bool_area:
                         areas = ["area","�REA","Metros:", "Centimietros:"]
                         for i in areas:
-                            textarea = text.split("Salvedades")[0].strip()
+                            try:
+                                textarea = text.split("Linderos Tecnicamente Definidos")[1].strip()                                
+                            except:   
+                                textarea = text                                
+                            textarea = textarea.split("Salvedades")[0].strip()
                             area_match = re.search(rf"({i})\D*(\d+(\.\d+)?) ", textarea, re.IGNORECASE)
                             
                             if i == 'Centimietros:':
