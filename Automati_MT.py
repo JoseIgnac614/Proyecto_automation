@@ -17,17 +17,17 @@ import traceback
 
 pestañapredio  =        True                #DECIDE SI LLENAR PESTAÑA PREDIO O NO    
 
-llenarsolopredio =      1                   #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
+llenarsolopredio =      1                  #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
 meterleservi =          True                #METERLE SERVIDUMBRE O NO???????????????    False para no, True para sí
 revisar_interesados =   True                #REVISAR INTERESADOSSS????????????? (Mirar cuales estan mal, eliminar, modificar)
 llenar_derechos     =   True
 modoqc              =   False                #Modidica interesados pero debe estar revisar_interesados activa, derecho se modifica,
 poneraprobado       =   False                #Poner estado en aprobado, False = lo pone en realizado
-HibernarPC =            True               #HIBERNAR PC AL TEMRINAR????????
+HibernarPC =            False               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/14-12-2023/"
+carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/15-12-2023/"
 nombre_excel = 'Libro1.xlsx'
 indice_folio = "303-"
 
@@ -366,6 +366,7 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
                                             if cedula_selecc != (fila[3] and '0') or '-' in cedula_selecc:
                                                 fix_ced = True 
                                                 cedula = fila[3]
+                                                cambiosQC.value = cambiosQC.value + f'\nCedula de {nombres_posibles[0]} de R1'
                                         else:
                                             fix_ced = True
                                                             
@@ -529,6 +530,7 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
             driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTERAZSOC").send_keys(pn+sn+pa+sa)
             time.sleep(1)
             driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTEDIGIVERI").send_keys("0")
+        cedula = cedula.split("-")[0]
         driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTENUMDOC").send_keys(cedula)
         time.sleep(2)
         driver.find_element(By.CSS_SELECTOR, "#GUARDAR").click()
@@ -562,6 +564,8 @@ def ajustar_numero(cadena):
                 cadena = partes[0] + ',' + parte_decimal[:2]
 
         cadena = cadena.replace('.', ',')
+        if len(parte_decimal) == 1:
+            cadena += '0'
     else:
         # Si no tiene decimales, agregar una coma y dos ceros al final
         cadena += ',00'
@@ -900,7 +904,7 @@ def buscar_inter_malo(driver, datosjuridicos, sininteres, unaveznomas,n_ciclo,ma
     bool_avisar = False                      #avisa que el # de interesados es mayor en MT que en el excel
     cadena1_interesado = ""                 #Para ver los datos del interesado
     if datosjuridicos["Género"] == 'N':
-        nombre_completo = datosjuridicos["Primer Nombre"]
+        nombre_completo = datosjuridicos["Primer Nombre"].strip()
     else:
         nombre_completo = datosjuridicos["Primer Nombre"] + datosjuridicos["Segundo Nombre"] + datosjuridicos["Primer Apellido"] + datosjuridicos["Segundo Apellido"]
     nombre_sin_segundo_nombre = datosjuridicos["Primer Nombre"] + datosjuridicos["Primer Apellido"] + datosjuridicos["Segundo Apellido"]
@@ -1039,7 +1043,7 @@ while True:
     except:
         driver.refresh()
 
-fila_a_extraer = 2  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
+fila_a_extraer = 33  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
 veces_repetir_folio = 5
 datos_titulos = datos.copy() 
 datos_titulosjuri = datosjuridicos.copy()
@@ -1138,6 +1142,8 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                         nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+ 2)
                         nueva_celda.value = "Es PH, y no hay coeficiente"
                     else:
+                        if cadena_busqueda not in texto_elemento and datos["Coeficiente"] != "":
+                            combobox.send_keys("Unidad_Predial")
                         llenar_predio(hoja,datos['Matrícula matriz'],datos['Dirección Corregida'],datos['Área de Terreno'],datos["Coeficiente"])                                                
 
                 if llenarsolopredio:

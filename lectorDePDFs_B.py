@@ -7,7 +7,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 # Carpeta que contiene las subcarpetas con los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/14-12-2023/"
+carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/15-12-2023/"
 # carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/hola/"
 
 # Nombre del archivo CSV de salida
@@ -33,6 +33,19 @@ def eliminar_secuencias_repetidas(cadena):
     cadena = ' '.join(filter(None, cadena.split()))
     return cadena
 
+def check_decimal(valor_fn):
+    if ',' in valor_fn and '.' in valor_fn:
+        valor_fn = valor_fn.replace('.', '') 
+    elif valor_fn.count('.') > 1:
+        partes = valor_fn.rsplit('.', 1)  # Dividir la cadena en dos partes desde el último punto
+        if len(partes[-1]) < 3:  # Si los últimos dígitos después del último punto son menos de 3
+            valor_fn = partes[0].replace('.', '') + '.' + partes[-1]  # Mantener solo el punto que separa la parte decimal
+
+    if ',' in valor_fn:
+        valor_fn = valor_fn.replace(',', '.')  # Reemplazar coma por punto para tratar como número decimal
+    elif '.' in valor_fn and len(valor.split('.')[-1]) == 3:
+        valor_fn = valor_fn.replace('.', '')  # Tratar como número de miles si tiene tres dígitos después del punto
+    return valor_fn
 
 # Cargar las normas de corrección desde el archivo "norma.csv" en un diccionario
 normas = {}
@@ -73,6 +86,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
             with pdfplumber.open(pdf_path) as pdf:
                 info_dict = {"Nombre de Archivo": archivo_pdf}                        
                 folio = archivo_pdf.split("-")[1].split(" ")[0] if "-" in archivo_pdf and " " in archivo_pdf else None # Obtener el número del nombre del archivo PDF
+                circulo = archivo_pdf.split(folio)[0]
                 info_dict["Folio"] = folio # Agregar el valor del "Folio" al diccionario info_dict
                 total_m2 = None
                 bool_area = False                       #señala  cuando hay una parte restante en el documento juridico
@@ -109,26 +123,12 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                             cadena = line.split("�REA")[1].strip()
                                             
                                         # Buscar las unidades de medida y sus valores numéricos                                                                                                            
-                                        matches = re.findall(r'\b(\d{4,}|\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?)\s*(\w+)?\b', cadena)
+                                        matches = re.findall(r'\b(\d{4,}(?:[.,]\d{3})*(?:[.,]\d+)?|\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?)\s*(\w+)?\b', cadena)
                                         for match in matches:
                                             valor, unidad = match
                                             #valor = valor.replace(".", "").replace(",", "")  # Eliminar puntos y comas como separadores de miles
 
-                                            # Determinar si el número debe ser tratado como decimal o número de miles
-                                            if ',' in valor and '.' in valor:
-                                                valor = valor.replace('.', '') 
-                                            elif valor.count('.') > 1:
-                                                partes = valor.rsplit('.', 1)  # Dividir la cadena en dos partes desde el último punto
-                                                if len(partes[-1]) < 3:  # Si los últimos dígitos después del último punto son menos de 3
-                                                    valor = partes[0].replace('.', '') + '.' + partes[-1]  # Mantener solo el punto que separa la parte decimal
-                                            
-                                            # if folio == '17649':
-                                            #     print ('')
-                                            
-                                            if ',' in valor:
-                                                valor = valor.replace(',', '.')  # Reemplazar coma por punto para tratar como número decimal
-                                            elif '.' in valor and len(valor.split('.')[-1]) == 3:
-                                                valor = valor.replace('.', '')  # Tratar como número de miles si tiene tres dígitos después del punto
+                                            valor = check_decimal(valor)
 
                                             if unidad is None or unidad not in conversiones:
                                                 unidad = "M2"  # Asignar M2 como unidad por defecto si no se encuentra o no está definida
@@ -157,20 +157,22 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 
                 for page in pdf.pages:
                     text = page.extract_text()
+                    text = text.split('https',1)[0]
+                    
                     # Extraer el número después de "Matrícula(s) Matriz:"
                     #matricula_match = re.search(r"Matrícula\(s\) Matriz:(.*?)([A-Za-z]|$)", text, re.DOTALL)
-                    matricula_match = re.search(r"Matrícula\(s\) Matriz:.*?-(\d+)", text, re.DOTALL)
+                    matricula_match = re.search(r"Matrícula\(s\) Matriz:(.*?)\nMatrícula\(s\)", text, re.DOTALL)
                     if matricula_match:
                         matriculas = matricula_match.group(1).strip().split() if matricula_match.group(1) else []
-                        info_dict["Matrícula matriz"] = " ".join(matriculas) if matriculas else None
-
+                        nueva_lista = [elemento.replace(circulo, '') for elemento in matriculas]
+                        info_dict["Matrícula matriz"] = " ".join(nueva_lista) if nueva_lista else None
                     # Extraer el número después de "Matrícula(s) Derivada(s):" 
                     matriculas_derivadas_match = re.search(r"Matrícula\(s\) Derivada\(s\):(.*?)([A-Za-z]|$)", text, re.DOTALL)
                     if matriculas_derivadas_match:
                         matriculas_derivadas = matriculas_derivadas_match.group(1).strip().split() if matriculas_derivadas_match.group(1) else []
                         info_dict["Matrículas derivadas"] = " ".join(matriculas_derivadas) if matriculas_derivadas else None
                     
-                    # if folio == '75811':
+                    # if folio == '60589':
                     #     print ('hola')
                     #Extraer número después de "Area de terreno Hectareas:" o "AREA:"
                     area_terreno = "" 
@@ -209,18 +211,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                     temp = cadena.split()
                                     cadenasinhect = ' '.join(temp[:4])
                                     
-                                if ',' in valor and '.' in valor:
-                                    valor = valor.replace('.', '') 
-                                elif valor.count('.') > 1:
-                                    partes = valor.rsplit('.', 1)  # Dividir la cadena en dos partes desde el último punto
-                                    if len(partes[-1]) < 3:  # Si los últimos dígitos después del último punto son menos de 3
-                                        valor = partes[0].replace('.', '') + '.' + partes[-1]  # Mantener solo el punto que separa la parte decimal
-
-                                if ',' in valor:
-                                    valor = valor.replace(',', '.')  # Reemplazar coma por punto para tratar como número decimal
-                                elif '.' in valor and len(valor.split('.')[-1]) == 3:
-                                    valor = valor.replace('.', '')  # Tratar como número de miles si tiene tres dígitos después del punto
-
+                                valor = check_decimal(valor)
 
                                 valor_m2 = float(valor) * conversiones[unidad]
 
@@ -234,8 +225,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                 if unidad == "M2" or unidad == "MTS2" or unidad == "METROS2" or unidad == "MTRS2" or unidad == "METROS C":
                                     info_dict["Área de Terreno"] = total_m2
                                     break
-                            # break
-                        coef_match = re.search(r'coeficiente.*?(\d[\d.,]*)\s*%', textarea, re.IGNORECASE)
+                            # break 
+                        coef_match = re.search(r'\bcoeficiente\D*(\d[\d.,]*)(?=[\s%]|$)', textarea, re.IGNORECASE)
                         if coef_match:
                             coeficien = coef_match.group(1).replace('.', ',')
                             info_dict["Coeficiente"] = coeficien
@@ -250,21 +241,28 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                     if not bool_area:
                         areas = ["area","�REA","Metros:", "Centimietros:"]
                         for i in areas:
+                            textarea1 = text.replace("\n"," ")
                             try:
-                                textarea = text.split("Linderos Tecnicamente Definidos")[1].strip()                                
+                                textarea = textarea1.split("Cabidad y Linderos")[1].strip()                                
                             except:   
-                                textarea = text                                
+                                textarea = textarea1                                
                             textarea = textarea.split("Salvedades")[0].strip()
-                            area_match = re.search(rf"({i})\D*(\d+(\.\d+)?) ", textarea, re.IGNORECASE)
+                            area_match = re.search(rf'\b{i}\D*(?<![NSRO]) (\d[\d.,]*)', textarea, re.IGNORECASE) ##probaaaaaaar con 60077
                             
                             if i == 'Centimietros:':
-                                oe = re.findall(rf"({i})\D*(\d+(\.\d+)?)\n", textarea, re.IGNORECASE)
+                                oe = re.findall(r'\bCentimietros:\D*(\d[\d.,]*)\D', textarea, re.IGNORECASE)
                                 if oe:
-                                    area_match = oe[0]
-                                    # print (area_match)
-                                    posicion2 = area_match[1]
-                            elif area_match:    
-                                posicion2 = area_match.group(2)
+                                    numeros_validos = [numero for numero in oe if numero != '0']
+                                    if numeros_validos:
+                                        area_match = numeros_validos[0]
+                                        # print (area_match)
+                                        posicion2 = area_match
+                            elif area_match: 
+                                preven_area = area_match.group(1)
+                                if preven_area.endswith(',') or preven_area.endswith('.'):
+                                    preven_area = preven_area[:-1]
+                                    
+                                posicion2 = preven_area
         
 
                             if area_match and str(posicion2) != "0" and str(posicion2) != "":
@@ -275,6 +273,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                                 else:
                                     valor = posicion2
                                     area_terreno = valor
+                                    
+                                area_terreno = check_decimal(area_terreno)
                                 #print("Área de Terreno:", area_terreno)  # Agrega esta línea para depura
                                 info_dict["Área de Terreno"] = area_terreno
                                 

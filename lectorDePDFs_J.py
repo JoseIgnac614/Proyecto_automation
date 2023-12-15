@@ -7,10 +7,10 @@ import pandas as pd
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/14-12-2023/"
+carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/15-12-2023/"
 
 
-soloPH = False                                      #Poner true si se quieren solo las anotaciones de PH
+soloPH = True                                      #Poner true si se quieren solo las anotaciones de PH
 
 
 
@@ -124,7 +124,7 @@ anotacionessiosi = [
                     "COMPRAVENTA POSESION",
                     "(FALSA",
                     "EQUIVALENTE A UNA 7/8 PARTE",
-                    'CONSTITUCION REGLAMENTO'
+                    # 'CONSTITUCION REGLAMENTO'
                     ]
 
 if soloPH:
