@@ -7,7 +7,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 # Carpeta que contiene las subcarpetas con los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/13-12-2023/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/14-12-2023/"
 # carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/hola/"
 
 # Nombre del archivo CSV de salida
@@ -170,7 +170,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         matriculas_derivadas = matriculas_derivadas_match.group(1).strip().split() if matriculas_derivadas_match.group(1) else []
                         info_dict["Matrículas derivadas"] = " ".join(matriculas_derivadas) if matriculas_derivadas else None
                     
-                    # if folio == '35805':
+                    # if folio == '75811':
                     #     print ('hola')
                     #Extraer número después de "Area de terreno Hectareas:" o "AREA:"
                     area_terreno = "" 
@@ -287,10 +287,11 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         info_dict["Tipo Predio"] = tipo_predio_match.group(1)
                                             
                     # Extraer la dirección antes del salto de línea
-                    direccion_match = re.search(r"Dirección Actual del Inmueble:(.*?)(?:\n|$)", text)
+                    # direccion_match = re.search(r"Dirección Actual del Inmueble:(.*?)(?:\n|$)", text)
+                    direccion_match = re.search(r'Dirección Actual del Inmueble:(.*?)\nDirecciones Anteriores:', text, re.DOTALL)
                     if direccion_match:
-                        direccion = direccion_match.group(1).strip()
-                        info_dict["Dirección"] = direccion if direccion else None
+                        direccion = direccion_match.group(1).replace('\n',' ')
+                        info_dict["Dirección"] = direccion.strip() if direccion else None
                     #print (text)
                 
                 

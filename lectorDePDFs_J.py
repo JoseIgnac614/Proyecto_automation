@@ -7,18 +7,22 @@ import pandas as pd
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/13-12-2023/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/14-12-2023/"
 
-# Nombre del archivo CSV de salida
-archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
-# Cargar el archivo CSV
-df = pd.read_csv('Data_generos.csv', sep=';')
 
 soloPH = False                                      #Poner true si se quieren solo las anotaciones de PH
 
 
 
 
+
+# Nombre del archivo CSV de salida
+if soloPH:
+    archivo_csv = carpeta_raiz+"soloPH.csv"
+else:
+    archivo_csv = carpeta_raiz+"nombres_cedulas.csv"
+# Cargar el archivo CSV
+df = pd.read_csv('Data_generos.csv', sep=';')
 
 
 def dividir_nombres(nombre):
@@ -89,10 +93,6 @@ segundo_nombre = []
 primer_apellido = []
 segundo_apellido = []
 anotacionesfuera = [
-                    # "COMPRAVENTA",                                   #TEMPORAAAAAAAL PARA PROPIEDAD HORIZONTAL       
-                    # "ADJUDICACION",                                   #TEMPORAAAAAAAL PARA PROPIEDAD HORIZONTAL 
-                    # "ESTE Y OTRO",                                           #TEMPORAAAAAAAL PARA PROPIEDAD HORIZONTAL 
-                    
                     "CANCELACION",
                     "PARCIAL",
                     "PARCILA",
@@ -113,20 +113,22 @@ anotacionesfuera = [
                     "ENAJENAR",
                     "HIPOTECA",  
                     "OFERTA DE COMPRA",           
-                   
                     ]
+
 
 anotacionessiosi = [
                     "COMPRAVENTA (MODO DE ADQUISICION)",
                     "COMPRAVENTA MODALIDAD: (NOVIS)",
-                    "CONSTITUCION REGLAMENTO",
                     "LOTEO (OTRO)",
                     "CONSTITUCION DE URBANIZACION",
                     "COMPRAVENTA POSESION",
                     "(FALSA",
                     "EQUIVALENTE A UNA 7/8 PARTE",
-                    # "HORIZONTAL"   #TEMPORAAAAAAAL PARA PROPIEDAD HORIZONTAL    
+                    'CONSTITUCION REGLAMENTO'
                     ]
+
+if soloPH:
+    anotacionessiosi.append('CONSTITUCION REGLAMENTO')
 
 conversiones = {
     "HAS": 10000,  # 1 Ha = 10,000 m2
@@ -453,8 +455,8 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             segundo_apellido.append(sa) 
                             i += 1
                         
-                        # if folio == "84642":
-                        #     print ("hola")
+                        if folio == "75811":
+                            print ("hola")
                         n_escritura_servidumbre = ""
                         bool_serv = False
                         cadena_spec = ""
@@ -463,11 +465,21 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                             lines = page.extract_text().splitlines()
                             for line in reversed(lines):
                                 for i in range(len(primer_nombre)):
-                                    if (primer_nombre[i] in line or " "+segundo_nombre[i] in line) and (primer_apellido[i] in line or " "+segundo_apellido[i] in line):
+                                    cadenas = [primer_nombre[i], segundo_nombre[i], primer_apellido[i], segundo_apellido[i]]
+                                    # Recorres la lista y reemplazas cadenas vacías por 'abcd'
+                                    for j in range(4):
+                                        if cadenas[j] == '':
+                                            cadenas[j] = 'abcd'
+                                        if "\\" in cadenas[j] or '/' in cadenas[j]:
+                                            cadenas[j] = cadenas[j].replace('\\', 'Ñ')
+                                            cadenas[j] = cadenas[j].replace('/', 'Ñ')
+
+                                    if (cadenas[0] in line or " "+cadenas[1] in line) and (cadenas[2] in line or " "+cadenas[3] in line):
                                         # Buscar cualquier número con más de dos dígitos en la línea
-                                        matches = re.findall(r'\b\d{3,}\b', line)
-                                        if matches and cedulas[i] == "":
-                                            cedulas[i] = matches[0]  # Asignar el primer número de más de dos dígitos como cédula   
+                                        matches2 = re.findall(r'\b\d{3,}\b', line)
+                                        if matches2 and cedulas[i] == "":
+                                            cedulas[i] = matches2[0]  # Asignar el primer número de más de dos dígitos como cédula 
+                                            matches2 = []  
                         
                         
                             

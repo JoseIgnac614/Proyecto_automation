@@ -27,7 +27,7 @@ HibernarPC =            True               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/13-12-2023/"
+carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/14-12-2023/"
 nombre_excel = 'Libro1.xlsx'
 indice_folio = "303-"
 
@@ -262,12 +262,13 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
     time.sleep(1.5)
 
 
-    persona = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#vSOLICITANTE_ID")))
+    wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#vSOLICITANTE_ID")))
+    persona = driver.find_element(By.CSS_SELECTOR,"#vSOLICITANTE_ID")
+    time.sleep(2)
     if genre != "N":                                        #N: NIT, H: hombre, M: mujer
         posicion_id = 0                                     #posicion del ciclo en el while
-        tipo_id_selecc = False                              #En qué tipo de id fue encontrado el interesado
+        fix_name = False                              #Arreglar nombre
         fix_ced = False
-        fix_gen = False
         tipo_id_selecc_str = ""
         cedula_selecc = ""
         editar_selecc = ""
@@ -276,7 +277,6 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
         same_nombres = 0                                    #cuantos nombres iguales se encontraron
         while True:
             if sn_sa_blank == True and posicion_id == 0 and cambiosn_unavez:
-                
                 cambiosn_unavez = False
                 time.sleep(.5)
                 ay = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#LIMPIARCAMPOS")))
@@ -332,11 +332,16 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
                     for elemento in elementos_tr:
                         # Busca el elemento td en la tercera posición (índice 2)
                         nombre_elemento = elemento.find_elements(By.CSS_SELECTOR, "td:nth-child(3) span")
-                        if nombre_elemento:
+                        cedula_elemento = elemento.find_elements(By.CSS_SELECTOR, "td:nth-child(5) span")
+                        
+                        if cedula_elemento:
                             nombre = quitar_acentos(nombre_elemento[0].text)
+                            
                             cuantos += 1
                             print(nombre)   #Saber qué nombres se enlistan
-                            if (nombre == pn+sn+pa+sa) or ((nombre == pn+pa+sa) and (not sn_sa_blank)):
+                            if (nombre == pn+sn+pa+sa) or ((nombre == pn+pa+sa) and (not sn_sa_blank)) or cedula_elemento[0].text == str(cedula):
+                                if (cedula_elemento[0].text == str(cedula)) and (nombre != pn+sn+pa+sa):
+                                    fix_name = True
                                 tipo_id_selecc_str = tipo_id[posicion_id]                                               
                                 same_nombres +=1
                                 same_nombres_ciclo += 1
@@ -464,6 +469,14 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
             time.sleep(2)
             driver.find_element(By.CSS_SELECTOR, "#vACTGRUPOETNICOID").send_keys("Ninguno")
             time.sleep(2)
+            
+            if fix_name:
+                driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTESNOMBRE").clear()
+                driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTESNOMBRE").send_keys(sn)
+                time.sleep(1)
+                driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTESAPELLIDO").clear()
+                driver.find_element(By.CSS_SELECTOR, "#vACTMIENINTESAPELLIDO").send_keys(sa)
+                time.sleep(2)
             
             if sn_sa_blank:            
                 pa = sn
@@ -1045,8 +1058,11 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
         try:
             print ("Llenando la fila # ",fila_a_extraer,"...")
             # Extrae los datos de la fila y almacénalos en el diccionario
-            nueva_celda1 = hoja.cell(row=fila_a_extraer, column=columna_max + 1)
-            if nueva_celda1.value is not None and nueva_celda1.value != "NO SE LLENÓ FOLIO, REVISAR":
+            nueva_celda1 = hoja.cell(row=fila_a_extraer, column=columna_max + 1).value
+            nueva_celda2 = hoja.cell(row=fila_a_extraer, column=columna_max + 2).value
+            nueva_celda3 = hoja.cell(row=fila_a_extraer, column=columna_max + 3).value
+            nueva_celda4 = hoja.cell(row=fila_a_extraer, column=columna_max + 4).value
+            if (nueva_celda1 is not None and nueva_celda1 != "NO SE LLENÓ FOLIO, REVISAR" and 'Se pro' not in str(nueva_celda4)) or nueva_celda3 == "Unfounded" or nueva_celda2 is not None:
                 flag = 1
             else:
                 fila = hoja[fila_a_extraer]
@@ -1408,6 +1424,25 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                         
                                         
                                         wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#W0054CREARGRUPO')))
+                                        
+                                        # # Busca el tr por su ID específico
+                                        # tb_element = driver.find_element(By.ID,'W0054GridgruposContainerTbl')
+
+                                        # # Encuentra todos los td dentro del tr
+                                        # tr_elements = tb_element.find_element(By.CSS_SELECTOR,'tr')
+                                        
+                                        while True:
+                                            rows = driver.find_elements(By.CSS_SELECTOR, '[id^="W0054GridgruposContainerRow_"]')
+                                            if len(rows) <= 1:
+                                                break
+                                            time.sleep(1)
+                                            delete_button = driver.find_element(By.CSS_SELECTOR,'#W0054vDELETE1_0001')
+                                            delete_button.click()
+                                            time.sleep(.5)
+                                            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask")))
+                                            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, "body > div.gx-mask.gx-unmask")))
+                                            # tr_elements = tb_element.find_element(By.CSS_SELECTOR,'td')  # Actualiza la lista de td después de eliminar
+                                        
                                         while True:             #para asegurarse de que hay un grupo creado
                                             try:
                                                 driver.find_element(By.CSS_SELECTOR, "#W0054GridgruposContainerRow_0001 > td:nth-child(4) > p")
@@ -1425,11 +1460,12 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                                             driver.find_element(By.CSS_SELECTOR, "#W0054vTIPOIDENTIFICACION_ID").send_keys("Cedula Ciudadanía")
                                         else:
                                             driver.find_element(By.CSS_SELECTOR, "#W0054vTIPOIDENTIFICACION_ID").send_keys("Numero de Identificación Tributaria")
-                                            
+                                        time.sleep(1)
                                         if firstced:
                                             checkpro = driver.find_element(By.CSS_SELECTOR, "#W0054vACTGRUPINTEREPROPRI")      # escoger grupo
                                             checkpro.click()
                                             firstced = False
+                                            time.sleep(1)
                                         
                                         driver.find_element(By.CSS_SELECTOR, "#W0054vACTMIENINTENUMDOC").send_keys(ced)
                                         
@@ -1559,6 +1595,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                         driver.find_element(By.CSS_SELECTOR, "#W0014CANCEL").click()
                     flag = 0
                     errorzaso.value = None
+                    
                     archivo_excel.save(carpeta_almacenamiento+"Libro1.xlsx")
             break
     
