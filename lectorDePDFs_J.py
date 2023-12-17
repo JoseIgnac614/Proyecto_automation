@@ -112,7 +112,8 @@ anotacionesfuera = [
                     "% (MODO DE ADQUISICION)",
                     "ENAJENAR",
                     "HIPOTECA",  
-                    "OFERTA DE COMPRA",           
+                    "OFERTA DE COMPRA",   
+                    "NUDA PROPIEDAD",        
                     ]
 
 
