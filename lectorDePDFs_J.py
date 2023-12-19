@@ -7,10 +7,10 @@ import pandas as pd
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/15-12-2023/"
+carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/hola/"
 
 
-soloPH = True                                      #Poner true si se quieren solo las anotaciones de PH
+soloPH = False                                      #Poner true si se quieren solo las anotaciones de PH
 
 
 
@@ -114,6 +114,7 @@ anotacionesfuera = [
                     "HIPOTECA",  
                     "OFERTA DE COMPRA",   
                     "NUDA PROPIEDAD",        
+                    "USUFRUCTO",
                     ]
 
 
@@ -125,6 +126,7 @@ anotacionessiosi = [
                     "COMPRAVENTA POSESION",
                     "(FALSA",
                     "EQUIVALENTE A UNA 7/8 PARTE",
+                    "JUDICIAL DE PERTENENCIA"
                     # 'CONSTITUCION REGLAMENTO'
                     ]
 
