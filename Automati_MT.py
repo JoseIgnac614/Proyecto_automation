@@ -27,7 +27,7 @@ HibernarPC =            False               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/15-12-2023/"
+carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/26-12-2023/"
 nombre_excel = 'Libro1.xlsx'
 indice_folio = "303-"
 
@@ -1043,7 +1043,7 @@ while True:
     except:
         driver.refresh()
 
-fila_a_extraer = 33  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
+fila_a_extraer = 2  # Reemplaza con el número de fila deseado REVISAR 14 Y 15,16
 veces_repetir_folio = 5
 datos_titulos = datos.copy() 
 datos_titulosjuri = datosjuridicos.copy()
@@ -1143,7 +1143,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                         nueva_celda.value = "Es PH, y no hay coeficiente"
                     else:
                         if cadena_busqueda not in texto_elemento and datos["Coeficiente"] != "":
-                            combobox.send_keys("Unidad_Predial")
+                            combobox.send_keys("PH.Unidad")
                         llenar_predio(hoja,datos['Matrícula matriz'],datos['Dirección Corregida'],datos['Área de Terreno'],datos["Coeficiente"])                                                
 
                 if llenarsolopredio:
