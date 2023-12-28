@@ -17,7 +17,7 @@ import traceback
 
 pestañapredio  =        True                #DECIDE SI LLENAR PESTAÑA PREDIO O NO    
 
-llenarsolopredio =      0                  #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
+llenarsolopredio =      1                  #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
 meterleservi =          True                #METERLE SERVIDUMBRE O NO???????????????    False para no, True para sí
 revisar_interesados =   True                #REVISAR INTERESADOSSS????????????? (Mirar cuales estan mal, eliminar, modificar)
 llenar_derechos     =   True
@@ -27,7 +27,7 @@ HibernarPC =            False               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/26-12-2023/"
+carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/26-12-2023/"
 nombre_excel = 'Libro1.xlsx'
 indice_folio = "303-"
 
@@ -1066,7 +1066,7 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
             nueva_celda2 = hoja.cell(row=fila_a_extraer, column=columna_max + 2).value
             nueva_celda3 = hoja.cell(row=fila_a_extraer, column=columna_max + 3).value
             nueva_celda4 = hoja.cell(row=fila_a_extraer, column=columna_max + 4).value
-            if (nueva_celda1 is not None and nueva_celda1 != "NO SE LLENÓ FOLIO, REVISAR" and 'Se pro' not in str(nueva_celda4)) or nueva_celda3 == "Unfounded" or nueva_celda2 is not None:
+            if (nueva_celda1 is not None and nueva_celda1 != "NO SE LLENÓ FOLIO, REVISAR" and 'Se pro' not in str(nueva_celda4)) or nueva_celda3 is not None or nueva_celda2 is not None:
                 flag = 1
             else:
                 fila = hoja[fila_a_extraer]
