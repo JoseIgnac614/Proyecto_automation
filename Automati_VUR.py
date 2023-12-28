@@ -15,8 +15,8 @@ import traceback
 from selenium.common.exceptions import NoAlertPresentException
 
 nombrearchivo = "Libro1.xlsx"
-usuario = 'nacho'
-carpetafolio = '15-12-2023'
+usuario = 'PORTATIL LENOVO'
+carpetafolio = '26-12-2023'
 
 
 #directorio = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/Libro1.xlsx"
