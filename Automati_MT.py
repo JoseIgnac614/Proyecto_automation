@@ -1102,8 +1102,9 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                     try:
                         
                         matricula = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#vUPDATE_0001")))
-                        matricula.click()
-                        flag = 0
+                        if flag != 1:
+                            matricula.click()
+                            flag = 0
                         break
                     except:
                         wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "#vACTPREDIOESTADO")))
@@ -1114,15 +1115,19 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                             driver.find_element(By.CSS_SELECTOR, "#vACTPREDIOESTADO").send_keys("Aprobado")
                             if not modoqc and not poneraprobado:
                                 flagaprob = True
+                            flag = 3
+                        elif flag == 3:
+                            driver.find_element(By.CSS_SELECTOR, "#vACTPREDIOESTADO").send_keys("Cerrado")
+                            nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+3)
+                            nueva_celda.value = "Closed"
                             flag = 1
                         elif flag == 1:
                             flagaprob = False
-                            nueva_celda = hoja.cell(row=fila_a_extraer, column=columna_max+3)
                             nueva_celda.value = "Unfounded"
                             break
                     
                             
-
+            
             if flag != 1:
                 time.sleep(5)
                 wait = WebDriverWait(driver, 15)
