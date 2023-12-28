@@ -17,7 +17,7 @@ import traceback
 
 pestañapredio  =        True                #DECIDE SI LLENAR PESTAÑA PREDIO O NO    
 
-llenarsolopredio =      1                  #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
+llenarsolopredio =      0                  #LLENAR SOLO INFO DEL PREDIO O TAMBIEN EL RESTO DEL PROCESO????????     0 para solo predio, 1 para todo
 meterleservi =          True                #METERLE SERVIDUMBRE O NO???????????????    False para no, True para sí
 revisar_interesados =   True                #REVISAR INTERESADOSSS????????????? (Mirar cuales estan mal, eliminar, modificar)
 llenar_derechos     =   True
@@ -27,7 +27,7 @@ HibernarPC =            False               #HIBERNAR PC AL TEMRINAR????????
 
 # Abre el archivo Excel
 #carpeta_almacenamiento= 'C:/Users/nacho/Downloads/davud/Autofinal/09-11-2023/'
-carpeta_almacenamiento = "C:/Users/nacho/Downloads/Pruebas_autom/26-12-2023/"
+carpeta_almacenamiento = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/26-12-2023/"
 nombre_excel = 'Libro1.xlsx'
 indice_folio = "303-"
 
@@ -389,10 +389,10 @@ def crear_interes(pn,sn,pa,sa,genre,conteo_ced,cedula,ced_intered_found = ''):
                     
                     posicion_id += 1
                     if posicion_id > 2:
-                        if sn == '' and sa == '' and same_nombres == 0 and not sn_sa_blank:
-                            cambiosn_unavez = True
-                            posicion_id = -1
-                            sn_sa_blank = True
+                        # if sn == '' and sa == '' and same_nombres == 0 and not sn_sa_blank:
+                        #     cambiosn_unavez = True
+                        #     posicion_id = -1
+                        #     sn_sa_blank = True
                         break
             
             if posicion_id >= 2:
@@ -1604,10 +1604,10 @@ while hoja.cell(row=fila_a_extraer, column=1).value is not None:
                         driver.find_element(By.CSS_SELECTOR, "#Tab_TAB1Containerpanel1").click()
                         time.sleep(0.5)
                         driver.find_element(By.CSS_SELECTOR, "#W0014CANCEL").click()
-                    flag = 0
-                    errorzaso.value = None
-                    
-                    archivo_excel.save(carpeta_almacenamiento+"Libro1.xlsx")
+            flag = 0
+            errorzaso.value = None
+            
+            archivo_excel.save(carpeta_almacenamiento+"Libro1.xlsx")
             break
     
         except Exception as e:

@@ -7,10 +7,10 @@ import pandas as pd
 
 # Carpeta que contiene los archivos PDF
 #carpeta_raiz = "C:/Users/nacho/Downloads/davud/Autofinal/CORRECCIOES_PREDIOS_ANTES/"
-carpeta_raiz = "C:/Users/nacho/Downloads/Pruebas_autom/hola/"
+carpeta_raiz = "C:/Users/PORTATIL LENOVO/Downloads/Pruebas_autom/26-12-2023/"
 
 
-soloPH = False                                      #Poner true si se quieren solo las anotaciones de PH
+soloPH = True                                      #Poner true si se quieren solo las anotaciones de PH
 
 
 
@@ -117,21 +117,23 @@ anotacionesfuera = [
                     "USUFRUCTO",
                     ]
 
-
-anotacionessiosi = [
-                    "COMPRAVENTA (MODO DE ADQUISICION)",
-                    "COMPRAVENTA MODALIDAD: (NOVIS)",
-                    "LOTEO (OTRO)",
-                    "CONSTITUCION DE URBANIZACION",
-                    "COMPRAVENTA POSESION",
-                    "(FALSA",
-                    "EQUIVALENTE A UNA 7/8 PARTE",
-                    "JUDICIAL DE PERTENENCIA"
-                    # 'CONSTITUCION REGLAMENTO'
-                    ]
-
-if soloPH:
-    anotacionessiosi.append('CONSTITUCION REGLAMENTO')
+if not soloPH:
+    anotacionessiosi = [
+                        # "COMPRAVENTA (MODO DE ADQUISICION)",
+                        # "COMPRAVENTA MODALIDAD: (NOVIS)",
+                        "COMPRAVENTA",
+                        "LOTEO (OTRO)",
+                        "CONSTITUCION DE URBANIZACION",
+                        "COMPRAVENTA POSESION",
+                        "(FALSA",
+                        "EQUIVALENTE A UNA 7/8 PARTE",
+                        "JUDICIAL DE PERTENENCIA"
+                        # 'CONSTITUCION REGLAMENTO'
+                        ]
+else:
+    anotacionessiosi = [
+                        'CONSTITUCION REGLAMENTO'
+                        ]
 
 conversiones = {
     "HAS": 10000,  # 1 Ha = 10,000 m2
@@ -209,20 +211,20 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                 # nombres_de = []
                 # cedulas_de = []
                 
-                # if folio == '21639':
+                # if folio == '37251':
                 #     print ("hola")
                 
                 for page in reversed(pdf.pages):
                     # Contar cuántas veces aparece "ANOTACION: Nro 1" y "ANOTACION" en todas las líneas
                     lines = page.extract_text().splitlines()
                     for line in lines:
-                        if "ANOTACION:" in line:
+                        if "ANOTACION: Nro" in line:
                             count_anotacion += 1
                             if " Nro 1 " in line:
                                 count_anotacion_nro_1 = True
                             # Extraer el número después de "ANOTACION:"
                             anotacion_match = re.search(r'ANOTACION: Nro (\d+)', line)
-                            if n_anotacion < int(anotacion_match.group(1)) if anotacion_match else None:
+                            if anotacion_match and n_anotacion < int(anotacion_match.group(1)):
                                 n_anotacion = int(anotacion_match.group(1))
                         if count_anotacion_nro_1 and "A:" in line or count_nr1_a == 0 and "DE:" in line:
                             count_nr1_a += 1    
@@ -252,7 +254,7 @@ for subdir, _, archivos in os.walk(carpeta_raiz):
                         if "https" in line or "Consultas VUR" in line:  # Ejemplo de condición
                             continue  # Si el número es par, pasa al siguiente número sin ejecutar el código restante
                         
-                        # if folio == "1123":
+                        # if folio == "100895":
                         #     print ("tons")
                         if "DE:" in line:           #para poder guardar un párrafo solo cuando tenga "DE:"
                             encontrado_de = True
